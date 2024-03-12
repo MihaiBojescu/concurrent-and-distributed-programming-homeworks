@@ -9,7 +9,7 @@ class UdpClient:
     def __init__(self) -> None:
         self._socket = socket(family=AF_INET, type=SOCK_DGRAM)
 
-    def run(self, to_address: str, to_port: int, data: str, data_resends: int) -> None:
+    def run(self, to_address: str, to_port: int, data: str, data_copies: int) -> None:
         encoded_data = data.encode("utf-8")
 
         print(f"Sending to: {to_address}:{to_port}")
@@ -24,7 +24,7 @@ class UdpClient:
 
             then = time_ns()
 
-            for _ in range(data_resends + 1):
+            for _ in range(data_copies + 1):
                 for message in message_fragmenter:
                     self._socket.sendto(message.to_bytes(), (to_address, to_port))
                     data, address_prime = self._socket.recvfrom(1)

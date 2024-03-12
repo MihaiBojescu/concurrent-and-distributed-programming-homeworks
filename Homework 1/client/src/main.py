@@ -13,7 +13,7 @@ def main():
         to_address=args.to_address,
         to_port=args.to_port,
         data=args.data,
-        data_resends=args.data_resends,
+        data_copies=args.data_copies,
     )
 
 

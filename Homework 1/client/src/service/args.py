@@ -8,7 +8,7 @@ class Args:
     to_address: str
     to_port: int
     data: str
-    data_resends: int
+    data_copies: int
     variant: t.Union[t.Literal["TCP"], t.Literal["UDP"]]
 
 
@@ -37,9 +37,9 @@ class ArgsParser:
             required=False,
         )
         parser.add_argument(
-            "--data-resends",
+            "--data-copies",
             type=int,
-            help="Times to resend the data",
+            help="Copy the data n times",
             default=0,
             required=False,
         )
@@ -56,6 +56,6 @@ class ArgsParser:
             to_address=result.to_address,
             to_port=result.to_port,
             data=result.data,
-            data_resends=result.data_resends,
+            data_copies=result.data_copies,
             variant=result.variant,
         )

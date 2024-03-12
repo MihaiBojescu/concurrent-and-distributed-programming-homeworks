@@ -18,7 +18,7 @@ class Message:
         self._data = data
 
     @staticmethod
-    def from_bytes(data: bytes) -> t.Self:
+    def from_bytes(data: bytes):
         message_sequence_number = int.from_bytes(data[0:8])
         message_type = int.from_bytes(data[8:9])
         data = bytearray(data[9:])
