@@ -39,6 +39,8 @@ class UdpServer:
 
                     if client_address != client_address_prime:
                         continue
+                    
+                    self._socket.sendto(b'\x00', client_address)
 
                     if data_raw == b'\x01':
                         messages = []

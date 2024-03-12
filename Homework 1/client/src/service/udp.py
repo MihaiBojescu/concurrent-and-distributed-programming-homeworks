@@ -1,5 +1,4 @@
 from socket import socket, AF_INET, SOCK_DGRAM
-from time import sleep
 from data.message import MessageFragmenterFactory
 
 
@@ -16,7 +15,7 @@ class UdpClient:
 
         try:
             self._socket.sendto(b"\x00", (to_address, to_port))
-            max_size_raw, _address = self._socket.recvfrom(8)
+            max_size_raw, address = self._socket.recvfrom(8)
             max_size = int.from_bytes(max_size_raw)
             message_fragmenter = MessageFragmenterFactory(max_size).build(
                 encoded_data
@@ -25,6 +24,10 @@ class UdpClient:
             for _ in range(data_resends + 1):
                 for message in message_fragmenter:
                     self._socket.sendto(message.to_bytes(), (to_address, to_port))
+                    data, address_prime = self._socket.recvfrom(1)
+
+                    if address != address_prime:
+                        raise RuntimeError("Received from somebody else")
 
                 message_fragmenter.reset()
 
