@@ -1,3 +1,4 @@
+from time import time_ns
 from socket import socket, AF_INET, SOCK_STREAM
 
 
@@ -12,9 +13,13 @@ class TcpClient:
         encoded_data = data.encode("utf-8")
 
         print(f"Sending to: {to_address}:{to_port}")
+        then = time_ns()
 
         try:
             for _ in range(data_resends + 1):
                 self._socket.send(encoded_data)
         finally:
             self._socket.close()
+
+        now = time_ns()
+        print(f"Transmission took {(now - then) / 1000000000}s")

@@ -1,4 +1,5 @@
 import typing as t
+from time import time_ns
 from socket import socket, AF_INET, SOCK_DGRAM, error
 from data.message import Message, MessageDefragmenter, MessageType
 
@@ -23,9 +24,10 @@ class UdpServer:
         while True:
             starting_byte, client_address = self._socket.recvfrom(1)
 
-            if starting_byte != b'\x00':
+            if starting_byte != b"\x00":
                 continue
 
+            then = time_ns()
             received = 0
             messages: t.List[Message] = []
 
@@ -35,14 +37,16 @@ class UdpServer:
                 self._socket.sendto(self._buffer_size.to_bytes(8), client_address)
 
                 while True:
-                    data_raw, client_address_prime = self._socket.recvfrom(self._buffer_size)
+                    data_raw, client_address_prime = self._socket.recvfrom(
+                        self._buffer_size
+                    )
 
                     if client_address != client_address_prime:
                         continue
-                    
-                    self._socket.sendto(b'\x00', client_address)
 
-                    if data_raw == b'\x01':
+                    self._socket.sendto(b"\x00", client_address)
+
+                    if data_raw == b"\x01":
                         messages = []
                         break
 
@@ -53,10 +57,13 @@ class UdpServer:
                         received += len(message.data)
                         print(f"Total received {received:10} bytes: {message.data}")
                         continue
-                    
+
                     all_data = message_defragmenter.build(messages)
                     messages = []
                     print(f"Client {client_address} said {all_data}")
 
             except error as e:
                 print(e)
+
+            now = time_ns()
+            print(f"Transmission took {(now - then) / 1000000000}s")

@@ -1,3 +1,4 @@
+from time import time_ns
 from socket import socket, AF_INET, SOCK_DGRAM
 from data.message import MessageFragmenterFactory
 
@@ -21,6 +22,8 @@ class UdpClient:
                 encoded_data
             )
 
+            then = time_ns()
+
             for _ in range(data_resends + 1):
                 for message in message_fragmenter:
                     self._socket.sendto(message.to_bytes(), (to_address, to_port))
@@ -32,5 +35,8 @@ class UdpClient:
                 message_fragmenter.reset()
 
             self._socket.sendto(b"\x01", (to_address, to_port))
+
+            now = time_ns()
+            print(f"Transmission took {(now - then) / 1000000000}s")
         finally:
             self._socket.close()

@@ -1,3 +1,4 @@
+from time import time_ns
 from socket import socket, AF_INET, SOCK_STREAM, error
 
 
@@ -23,6 +24,7 @@ class TcpServer:
             received = 0
 
             print(f"Client address: {client_address}")
+            then = time_ns()
 
             try:
                 while True:
@@ -38,3 +40,6 @@ class TcpServer:
                 print(e)
             finally:
                 connection.close()
+
+            now = time_ns()
+            print(f"Transmission took {(now - then) / 1000000000}s")

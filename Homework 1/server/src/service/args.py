@@ -32,7 +32,7 @@ class ArgsParser:
             "--buffer-size",
             type=int,
             help="Buffer size to use",
-            default=1024,
+            default=8096,
             required=False,
         )
         parser.add_argument(
