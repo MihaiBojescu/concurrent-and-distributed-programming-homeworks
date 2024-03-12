@@ -1,3 +1,4 @@
+import typing as t
 import argparse
 from dataclasses import dataclass
 
@@ -7,6 +8,7 @@ class Args:
     bind_address: str
     bind_port: int
     buffer_size: int
+    variant: t.Union[t.Literal["TCP"], t.Literal["UDP"]]
 
 
 class ArgsParser:
@@ -33,10 +35,18 @@ class ArgsParser:
             default=65535,
             required=False,
         )
+        parser.add_argument(
+            "--variant",
+            type=str,
+            help="Use TCP or UDP?",
+            default="TCP",
+            required=False,
+        )
         result = parser.parse_args()
 
         return Args(
             bind_address=result.bind_address,
             bind_port=result.bind_port,
             buffer_size=result.buffer_size,
+            variant=result.variant,
         )
