@@ -4,15 +4,20 @@ import { AuthContext } from "../../reducer/auth/context"
 
 export const Root: React.FC = () => {
     const navigate = useNavigate()
-    const [authState,] = useContext(AuthContext)
+    const [authState, authDispatch] = useContext(AuthContext)
 
     useEffect(() => {
-        if (!authState.authenticated) {
-            navigate('/login')
+        if (authState.loading) {
+            authDispatch({ type: 'hydrate' })
         } else {
-            navigate('/app')
+            if (!authState.isAuthenticated) {
+                navigate('/login')
+            } else {
+                navigate('/app')
+            }
         }
-    }, [])
+
+    }, [authState])
 
     return <></>
 }

@@ -15,7 +15,7 @@ export const useReducerWithSideEffects = <R extends Reducer<any, any>>(
 
     const dispatch = useCallback((action: ReducerAction<R>) => {
         hiddenDispatch(action)
-        sideEffects(hiddenState, action, hiddenDispatch)
+        sideEffects(hiddenState, action, dispatch)
     }, [hiddenState, hiddenDispatch])
 
     return [hiddenState, dispatch]
