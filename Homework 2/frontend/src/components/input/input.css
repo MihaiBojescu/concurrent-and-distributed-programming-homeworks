@@ -1,0 +1,21 @@
+.text-field {
+    padding: 1rem;
+    border: 1px solid var(--medium-color);
+    border-radius: calc(var(--default-border-radius) / 2);
+    margin-bottom: var(--default-input-margin);
+    color: var(--dark-color);
+}
+
+.button {
+    padding: 1rem;
+    margin-bottom: var(--default-input-margin);
+    border: 1px solid var(--medium-color);
+    border-radius: calc(var(--default-border-radius) / 2);
+    background: var(--light-color);
+    color: var(--dark-color);
+}
+
+.button:disabled {
+    background: var(--white-color);
+    color: var(--medium-color);
+}

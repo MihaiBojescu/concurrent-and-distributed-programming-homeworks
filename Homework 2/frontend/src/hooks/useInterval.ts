@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
-export const useInterval = (milliseconds: number, callback: () => void) => {
+export const useInterval = (milliseconds: number, callback: () => void, dependencies: any[]) => {
     const interval = useRef<number | null>(null)
-    const [count, setCount] = useState(0)
 
     const start = useCallback(() => {
         interval.current = setInterval(callback, milliseconds) as any
-        setCount(0)
-    }, [callback])
+    }, dependencies)
 
     const end = () => {
         if (interval.current) {
@@ -19,16 +17,9 @@ export const useInterval = (milliseconds: number, callback: () => void) => {
         return () => {
             end()
         }
-    }, [callback])
-
-    useEffect(() => {
-        return () => {
-            end()
-        }
-    }, [])
+    }, dependencies)
 
     return {
-        count,
         start,
         end
     }

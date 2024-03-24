@@ -4,7 +4,12 @@ export type User = {
     username: string
 }
 
+export type AuthError = {
+    cause: string
+}
+
 export type AuthState = {
+    fetching: boolean,
     authenticated: boolean,
     error: null | string,
     user: null | User
