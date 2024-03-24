@@ -9,7 +9,6 @@ type Message<T> = {
 }
 
 export type ManagedWebSocket = {
-    opened: boolean
     request<R, T = unknown>(type: string, data: T): Promise<R>,
     send<T>(type: string, data: T): void,
     receive<T>(type: string, callback: (data: T) => void): void
@@ -17,14 +16,14 @@ export type ManagedWebSocket = {
 
 export const useWebSockets = (url: string): ManagedWebSocket => {
     const socket = useRef<WebSocket>()
-    const [opened, setOpened] = useState(false)
+    const opened = useRef<boolean>(false)
     const [messages, setMessages] = useState<Record<string, Message<any>[]>>({})
     const [requests, setRequests] = useState<Record<string, Message<any>>>({})
     const requestListeners = useRef<Record<string, DeferredPromise<any>>>({})
     const plainListeners = useRef<Record<string, (data: any) => void>>({})
 
     const request = async <T, R>(type: string, data: T): Promise<R> => {
-        if (!socket.current || !opened) {
+        if (!socket.current || !opened.current) {
             throw new Error('Socket not connected')
         }
 
@@ -42,7 +41,7 @@ export const useWebSockets = (url: string): ManagedWebSocket => {
     }
 
     const send = <T>(type: string, data: T) => {
-        if (!socket.current || !opened) {
+        if (!socket.current || !opened.current) {
             return
         }
 
@@ -54,7 +53,7 @@ export const useWebSockets = (url: string): ManagedWebSocket => {
     }
 
     const receive = <T>(type: string, callback: (data: T) => void) => {
-        if (!socket.current || !opened) {
+        if (!socket.current || !opened.current) {
             return
         }
 
@@ -66,11 +65,10 @@ export const useWebSockets = (url: string): ManagedWebSocket => {
         }))
     }
 
-    useWebsocketManager(socket, url, setOpened, setRequests, setMessages)
+    useWebsocketManager(socket, url, opened, setRequests, setMessages)
     useWebSocketMessageQueue(requests, setRequests, messages, setMessages, requestListeners, plainListeners)
 
     return {
-        opened,
         request,
         send,
         receive
@@ -80,7 +78,7 @@ export const useWebSockets = (url: string): ManagedWebSocket => {
 const useWebsocketManager = (
     socket: { current: undefined | WebSocket },
     url: string,
-    setOpened: (opened: boolean) => void,
+    opened: { current: boolean },
     setRequests: (callback: (requests: Record<string, Message<any>>) => Record<string, Message<any>>) => void,
     setMessages: (callback: (messages: Record<string, Message<any>[]>) => Record<string, Message<any>[]>) => void
 ) => {
@@ -107,16 +105,16 @@ const useWebsocketManager = (
     )
 
     const handleOpen = () => {
-        setOpened(true)
+        opened.current = true
     }
 
     const handleClose = () => {
-        setOpened(false)
+        opened.current = false
         interval.start()
     }
 
     const handleError = () => {
-        setOpened(false)
+        opened.current = false
         interval.start()
     }
 

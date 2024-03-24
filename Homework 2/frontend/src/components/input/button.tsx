@@ -1,3 +1,4 @@
+import { MouseEvent } from 'react'
 import './input.css'
 
 interface Props {
@@ -7,9 +8,13 @@ interface Props {
 }
 
 export const Button: React.FC<Props> = ({ onClick, disabled, children }) => {
+    const onClickInterceptor = (event: MouseEvent) => {
+        onClick()
+    }
+
     return (
         <button
-            onClick={() => onClick()}
+            onClick={onClickInterceptor}
             disabled={disabled}
             className="button"
         >
