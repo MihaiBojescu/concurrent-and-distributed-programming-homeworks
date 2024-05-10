@@ -1,0 +1,19 @@
+.spacing-xs {
+    padding: var(--xs-size)
+}
+
+.spacing-s {
+    padding: var(--s-size)
+}
+
+.spacing-m {
+    padding: var(--m-size)
+}
+
+.spacing-l {
+    padding: var(--l-size)
+}
+
+.spacing-xl {
+    padding: var(--xl-size)
+}

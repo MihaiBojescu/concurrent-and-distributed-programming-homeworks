@@ -1,53 +1,48 @@
-import { useContext, useEffect, useState } from "react"
-import { Page } from "../../components/page/page"
-import { AuthContext } from "../../reducer/auth/context"
-import { Card } from "../../components/card/card"
-import { H1 } from "../../components/typography/h1"
-import { TextField } from "../../components/input/textfield"
-import { Button } from "../../components/input/button"
-import { Image } from "../../components/image/image"
 import { Spin } from "../../components/animate/spin"
-import { useNotAuthenticated } from "../../hooks/useAuthenticated"
+import { Card } from "../../components/card/card"
+import { CardCenteredElement } from "../../components/card/cardCenteredElement"
+import { Image } from "../../components/image/image"
+import { Button } from "../../components/input/button"
+import { ButtonRow } from "../../components/input/buttonRow"
 import { Form } from "../../components/input/form"
-import { useNavigate } from "react-router-dom"
+import { TextField } from "../../components/input/textfield"
+import { List } from "../../components/list/list"
+import { Page } from "../../components/page/page"
+import { Spacing } from "../../components/spacing/spacing"
+import { H1 } from "../../components/typography/h1"
+import { useLoginLogic } from "./logic"
 
 export const Login: React.FC = () => {
-    const [authState, authDispatch] = useContext(AuthContext)
-    const [disabled, setDisabled] = useState(false)
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    const navigate = useNavigate()
-
-    const onSubmit = () => {
-        authDispatch({ type: 'login', credentials: { username, password } })
-    }
-
-    useNotAuthenticated()
-
-    useEffect(() => {
-        if (authState.fetching) {
-            setDisabled(true)
-        } else {
-            setDisabled(false)
-        }
-    }, [authState.fetching])
-
-    useEffect(() => {
-        if (authState.isAuthenticated) {
-            navigate('/')
-        }
-    }, [authState.isAuthenticated])
+    const logic = useLoginLogic()
 
     return (
-        <Page centered={true}>
-            <Card>
-                <Form onSubmit={onSubmit}>
+        <Page centered>
+            <Card width={384}>
+                <Spacing spacing="m"/>
+                <CardCenteredElement>
+                    <Image id="user" size="xl" scaleFactor={5} />
+                </CardCenteredElement>
+                <Spacing spacing="m"/>
+                <Form onSubmit={logic.onSubmit}>
                     <H1>Login</H1>
-                    <TextField value={username} onChange={setUsername} placeholder="Username" />
-                    <TextField value={password} onChange={setPassword} placeholder="Password" />
-                    <Button onClick={onSubmit} disabled={disabled}>
-                        {!authState.fetching ? 'Submit' : <Spin><Image id="gear" /></Spin>}
-                    </Button>
+                    <List>
+                        <TextField value={logic.email} onChange={logic.setEmail} placeholder="Email" />
+                        <TextField value={logic.password} onChange={logic.setPassword} placeholder="Password" masked />
+                    </List>
+                    <Spacing spacing="m" />
+                    <ButtonRow>
+                        <Button disabled={logic.disabled}>
+                            {!logic.fetching
+                                ? 'Submit'
+                                : <Spin>
+                                    <Image id="gear" />
+                                </Spin>
+                            }
+                        </Button>
+                        <Button onClick={logic.onGoToCreateUserClick}>
+                            Create user
+                        </Button>
+                    </ButtonRow>
                 </Form>
             </Card>
         </Page>

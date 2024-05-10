@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  backend-db
+
+Parameters:
+  VpcId:
+    NoEcho: "false"
+    Description: ID of the VPC to use
+    Type: String
+  VpcSubnetId1:
+    NoEcho: "false"
+    Description: ID of the VPC subnet 1 to use
+    Type: String
+  VpcSubnetId2:
+    NoEcho: "false"
+    Description: ID of the VPC subnet 2 to use
+    Type: String
+  VpcSecurityGroupId:
+    NoEcho: "false"
+    Description: ID of the VPC security group to use
+    Type: String
+  DatabaseUsername:
+    NoEcho: "true"
+    Description: Username for Postgres database access
+    Type: String
+    MinLength: "1"
+    MaxLength: "16"
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DatabasePassword:
+    NoEcho: "true"
+    Description: Password for Postgres database access
+    Type: String
+    MinLength: "8"
+    MaxLength: "41"
+    AllowedPattern: "[a-zA-Z0-9]*"
+  DatabaseDatabase:
+    NoEcho: "true"
+    Description: Database to use from the Postgres database instance
+    Type: String
+
+Resources:
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: PCD Database subnet group
+      SubnetIds:
+        - !Ref VpcSubnetId1
+        - !Ref VpcSubnetId2
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: PCD Database security group
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref VpcSecurityGroupId
+  Database:
+    Type: AWS::RDS::DBInstance
+    DependsOn:
+      - DatabaseSubnetGroup
+      - DatabaseSecurityGroup
+    Properties:
+      DBInstanceIdentifier: PCD-homework-2
+      DBName: PCDHomework2
+      DBInstanceClass: db.t3.micro
+      AllocatedStorage: "20"
+      Engine: postgres
+      EngineVersion: "16.1"
+      MasterUsername: !Ref DatabaseUsername
+      MasterUserPassword: !Ref DatabasePassword
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      VPCSecurityGroups:
+        - !GetAtt
+          - DatabaseSecurityGroup
+          - GroupId
+
+Outputs:
+  DatabaseHost:
+    Description: Database host
+    Value: !GetAtt Database.Endpoint.Address
+  DatabasePort:
+    Description: Database port
+    Value: !GetAtt Database.Endpoint.Port

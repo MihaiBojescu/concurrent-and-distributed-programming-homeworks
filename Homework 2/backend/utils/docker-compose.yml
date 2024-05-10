@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  pcd-homework-2-cache:
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+
+  pcd-homework-2-db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432

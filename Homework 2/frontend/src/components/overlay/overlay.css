@@ -1,0 +1,13 @@
+.overlay {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.opaque {
+    background-color: var(--white-color);
+}
+
+.transparent {
+    background-color: transparent;
+}

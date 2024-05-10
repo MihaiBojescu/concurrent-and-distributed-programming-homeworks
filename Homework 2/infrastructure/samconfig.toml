@@ -1,0 +1,47 @@
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "pcd-homework-2"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.validate.parameters]
+lint = true
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+s3_prefix = "pcd-homework-2"
+region = "eu-central-1"
+profile = "pcd-homework-2"
+image_repositories = []
+parameter_overrides = [
+    "Stage=\"Production\"",
+    "VpcId=vpc-048a0f0fdca7c541b",
+    "VpcSubnetId1=subnet-009c075286313f428",
+    "VpcSubnetId2=subnet-054f22f8aadaebe50",
+    "VpcSecurityGroupId=sg-06af517a154dc870e",
+    "RedisHost=pcd-ca-9oe3da96jdld.92pqaf.0001.euc1.cache.amazonaws.com",
+    "RedisPort=6379",
+    "DatabaseHost=pcd-homework-2.cwsmlbud4fjp.eu-central-1.rds.amazonaws.com",
+    "DatabasePort=5432",
+    "DatabaseUsername=\"postgres\"",
+    "DatabasePassword=\"pcdhomeworktwo\"",
+    "DatabaseDatabase=\"postgres\"",
+]
+
+[default.package.parameters]
+resolve_s3 = true
+
+[default.sync.parameters]
+watch = true
+
+[default.local_start_api.parameters]
+warm_containers = "EAGER"
+
+[default.local_start_lambda.parameters]
+warm_containers = "EAGER"

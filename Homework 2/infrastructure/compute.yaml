@@ -1,0 +1,929 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  backend-compute
+
+Transform:
+  - AWS::Serverless-2016-10-31
+
+Parameters:
+  VpcId:
+    NoEcho: "false"
+    Description: ID of the VPC to use
+    Type: String
+  VpcSubnetId1:
+    NoEcho: "false"
+    Description: ID of the VPC subnet 1 to use
+    Type: String
+  VpcSubnetId2:
+    NoEcho: "false"
+    Description: ID of the VPC subnet 2 to use
+    Type: String
+  VpcSecurityGroupId:
+    NoEcho: "false"
+    Description: ID of the VPC security group to use
+    Type: String
+
+  RedisHost:
+    NoEcho: 'true'
+    Description: Redis Host
+    Type: String
+  RedisPort:
+    NoEcho: 'true'
+    Description: Redis Port
+    Type: String
+  DatabaseHost:
+    NoEcho: 'true'
+    Description: Database Host
+    Type: String
+  DatabasePort:
+    NoEcho: 'true'
+    Description: Database Port
+    Type: String
+  DatabaseDatabase:
+    NoEcho: 'true'
+    Description: Database Database
+    Type: String
+  DatabaseUsername:
+    NoEcho: 'true'
+    Description: Database Username
+    Type: String
+  DatabasePassword:
+    NoEcho: 'true'
+    Description: Database Password
+    Type: String
+
+Resources:
+  ApiGateway:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: ApiGateway
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "${request.body.action}"
+
+
+
+  # DefaultRoute:
+  #   Type: AWS::ApiGatewayV2::Route
+  #   Properties:
+  #     ApiId: !Ref ApiGateway
+  #     RouteKey: $default
+  #     AuthorizationType: NONE
+  #     OperationName: DefaultRoute
+  #     Target: !Join
+  #       - "/"
+  #       - - "integrations"
+  #         - !Ref ConnectIntegration
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: $connect
+      AuthorizationType: NONE
+      OperationName: ConnectRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref ConnectIntegration
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: $disconnect
+      AuthorizationType: NONE
+      OperationName: DisconnectRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref DisconnectIntegration
+  UserCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: users-create
+      AuthorizationType: NONE
+      OperationName: UserCreateRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref UserCreateIntegration
+  UserLoginRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: users-login
+      AuthorizationType: NONE
+      OperationName: UserLoginRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref UserLoginIntegration
+  UserLogoutRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: users-logout
+      AuthorizationType: NONE
+      OperationName: UserLogoutRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref UserLogoutIntegration
+  ProjectsGetRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: projects-get
+      AuthorizationType: NONE
+      OperationName: ProjectsGetIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref ProjectsGetIntegration
+  ProjectsGetAllRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: projects-get-all
+      AuthorizationType: NONE
+      OperationName: ProjectsGetAllRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref ProjectsGetAllIntegration
+  ProjectsCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: projects-create
+      AuthorizationType: NONE
+      OperationName: ProjectsCreateIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref ProjectsCreateIntegration
+  ProjectsCreateSubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: projects-create-subscribe
+      AuthorizationType: NONE
+      OperationName: ProjectsCreateSubscribeIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref ProjectsCreateSubscribeIntegration
+  ProjectsCreateUnsubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: projects-create-unsubscribe
+      AuthorizationType: NONE
+      OperationName: ProjectsCreateUnsubscribeIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref ProjectsCreateUnsubscribeIntegration
+  TokensGetRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: tokens-get
+      AuthorizationType: NONE
+      OperationName: TokensGetIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref TokensGetIntegration
+  TokensGetAllRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: tokens-get-all
+      AuthorizationType: NONE
+      OperationName: TokensGetAllRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref TokensGetAllIntegration
+  TokensCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: tokens-create
+      AuthorizationType: NONE
+      OperationName: TokensCreateIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref TokensCreateIntegration
+  TokensCreateSubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: tokens-create-subscribe
+      AuthorizationType: NONE
+      OperationName: TokensCreateSubscribeIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref TokensCreateSubscribeIntegration
+  TokensCreateUnsubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: tokens-create-unsubscribe
+      AuthorizationType: NONE
+      OperationName: TokensCreateUnsubscribeIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref TokensCreateUnsubscribeIntegration
+  TokensLoginRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: tokens-login
+      AuthorizationType: NONE
+      OperationName: TokensLoginRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref TokensLoginIntegration
+  VisualisationsGetRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: visualisations-get
+      AuthorizationType: NONE
+      OperationName: VisualisationsGetIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref VisualisationsGetIntegration
+  VisualisationsGetAllRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: visualisations-get-all
+      AuthorizationType: NONE
+      OperationName: VisualisationsGetAllRoute
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref VisualisationsGetAllIntegration
+  VisualisationsCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: visualisations-create
+      AuthorizationType: NONE
+      OperationName: VisualisationsCreateIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref VisualisationsCreateIntegration
+  VisualisationsCreateSubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: visualisations-create-subscribe
+      AuthorizationType: NONE
+      OperationName: VisualisationsCreateSubscribeIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref VisualisationsCreateSubscribeIntegration
+  VisualisationsCreateUnsubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: visualisations-create-unsubscribe
+      AuthorizationType: NONE
+      OperationName: VisualisationsCreateUnsubscribeIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref VisualisationsCreateUnsubscribeIntegration
+  DataGetAllRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: data-get-all
+      AuthorizationType: NONE
+      OperationName: DataGetAllIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref DataGetAllIntegration
+  DataCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: data-create
+      AuthorizationType: NONE
+      OperationName: DataCreateIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref DataCreateIntegration
+  DataCreateSubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: data-create-subscribe
+      AuthorizationType: NONE
+      OperationName: DataCreateSubscribeIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref DataCreateSubscribeIntegration
+  DataCreateUnsubscribeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGateway
+      RouteKey: data-create-unsubscribe
+      AuthorizationType: NONE
+      OperationName: DataCreateUnsubscribeIntegration
+      Target: !Join
+        - "/"
+        - - "integrations"
+          - !Ref DataCreateUnsubscribeIntegration
+
+
+
+  ConnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - ConnectionsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Connect Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ConnectionsFunction.Arn}/invocations
+  DisconnectIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - ConnectionsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Disconnect Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ConnectionsFunction.Arn}/invocations
+  UserCreateIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - UsersFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: User create Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UsersFunction.Arn}/invocations
+  UserLoginIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - UsersFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: User login Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UsersFunction.Arn}/invocations
+  UserLogoutIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - UsersFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: User logout Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UsersFunction.Arn}/invocations
+  ProjectsGetIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - ProjectsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Projects fetch Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ProjectsFunction.Arn}/invocations
+  ProjectsGetAllIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - ProjectsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Projects fetch all Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ProjectsFunction.Arn}/invocations
+  ProjectsCreateIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - ProjectsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Projects create Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ProjectsFunction.Arn}/invocations
+  ProjectsCreateSubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - ProjectsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Projects create-subscribe Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ProjectsFunction.Arn}/invocations
+  ProjectsCreateUnsubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - ProjectsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Projects create-unsubscribe Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ProjectsFunction.Arn}/invocations
+  TokensGetIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - TokensFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Tokens fetch Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokensFunction.Arn}/invocations
+  TokensGetAllIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - TokensFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Tokens fetch all Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokensFunction.Arn}/invocations
+  TokensCreateIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - TokensFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Tokens create Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokensFunction.Arn}/invocations
+  TokensCreateSubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - TokensFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Tokens create-subscribe Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokensFunction.Arn}/invocations
+  TokensCreateUnsubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - TokensFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Tokens create-unsubscribe Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokensFunction.Arn}/invocations
+  TokensLoginIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - TokensFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Tokens login Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TokensFunction.Arn}/invocations
+  VisualisationsGetIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - VisualisationsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Visualisations fetch Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VisualisationsFunction.Arn}/invocations
+  VisualisationsGetAllIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - VisualisationsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Visualisations fetch all Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VisualisationsFunction.Arn}/invocations
+  VisualisationsCreateIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - VisualisationsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Visualisations create Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VisualisationsFunction.Arn}/invocations
+  VisualisationsCreateSubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - VisualisationsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Visualisations create-subscribe Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VisualisationsFunction.Arn}/invocations
+  VisualisationsCreateUnsubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - VisualisationsFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Visualisations create-unsubscribe Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${VisualisationsFunction.Arn}/invocations
+  DataGetAllIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - DataFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Data fetch Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataFunction.Arn}/invocations
+  DataCreateIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - DataFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Data create Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataFunction.Arn}/invocations
+  DataCreateSubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - DataFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Data create-subscribe Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataFunction.Arn}/invocations
+  DataCreateUnsubscribeIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    DependsOn:
+      - DataFunction
+    Properties:
+      ApiId: !Ref ApiGateway
+      Description: Data create-unsubscribe Integration
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataFunction.Arn}/invocations
+
+  Deployment:
+    Type: AWS::ApiGatewayV2::Deployment
+    DependsOn:
+      # - DefaultRoute
+      - ConnectRoute
+      - DisconnectRoute
+      - UserCreateRoute
+      - UserLoginRoute
+      - UserLogoutRoute
+      - ProjectsGetAllIntegration
+      - ProjectsGetIntegration
+      - ProjectsCreateIntegration
+      - ProjectsCreateSubscribeIntegration
+      - ProjectsCreateUnsubscribeIntegration
+      - TokensGetAllIntegration
+      - TokensGetIntegration
+      - TokensCreateIntegration
+      - TokensCreateSubscribeIntegration
+      - TokensCreateUnsubscribeIntegration
+      - TokensLoginIntegration
+      - VisualisationsGetAllIntegration
+      - VisualisationsGetIntegration
+      - VisualisationsCreateIntegration
+      - VisualisationsCreateSubscribeIntegration
+      - VisualisationsCreateUnsubscribeIntegration
+      - DataGetAllIntegration
+      - DataCreateIntegration
+      - DataCreateSubscribeIntegration
+      - DataCreateUnsubscribeIntegration
+    Properties:
+      ApiId: !Ref ApiGateway
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: Production
+      Description: Prod Stage
+      DeploymentId: !Ref Deployment
+      ApiId: !Ref ApiGateway
+
+
+
+  ConnectionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/packages/connections/
+      Handler: main.handler
+      Runtime: nodejs20.x
+      Architectures:
+        - arm64
+      MemorySize: 256
+      Timeout: 10
+      Description: Handles connections
+      VpcConfig:
+        SubnetIds:
+          - !Ref VpcSubnetId1
+          - !Ref VpcSubnetId2
+        SecurityGroupIds:
+          - !Ref VpcSecurityGroupId
+      Environment:
+        Variables:
+          REDIS_HOST: !Ref RedisHost
+          REDIS_PORT: !Ref RedisPort
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonAPIGatewayInvokeFullAccess
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        Format: esm
+        OutExtension:
+          - .js=.mjs
+        EntryPoints:
+          - main.ts
+        Banner:
+          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+  ConnectionsFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ConnectionsFunction
+      Principal: apigateway.amazonaws.com
+
+  UsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/packages/users/
+      Handler: main.lambda_handler
+      Runtime: python3.11
+      Architectures:
+        - arm64
+      MemorySize: 512
+      Timeout: 10
+      Description: Handles users
+      VpcConfig:
+        SubnetIds:
+          - !Ref VpcSubnetId1
+          - !Ref VpcSubnetId2
+        SecurityGroupIds:
+          - !Ref VpcSecurityGroupId
+      Environment:
+        Variables:
+          REDIS_HOST: !Ref RedisHost
+          REDIS_PORT: !Ref RedisPort
+          DATABASE_HOST: !Ref DatabaseHost
+          DATABASE_PORT: !Ref DatabasePort
+          DATABASE_DATABASE: !Ref DatabaseDatabase
+          DATABASE_USERNAME: !Ref DatabaseUsername
+          DATABASE_PASSWORD: !Ref DatabasePassword
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonAPIGatewayInvokeFullAccess
+  UsersFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref UsersFunction
+      Principal: apigateway.amazonaws.com
+
+  ProjectsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/packages/projects/
+      Handler: main.handler
+      Runtime: nodejs20.x
+      Architectures:
+        - arm64
+      MemorySize: 512
+      Timeout: 10
+      Description: Handles projects
+      VpcConfig:
+        SubnetIds:
+          - !Ref VpcSubnetId1
+          - !Ref VpcSubnetId2
+        SecurityGroupIds:
+          - !Ref VpcSecurityGroupId
+      Environment:
+        Variables:
+          REDIS_HOST: !Ref RedisHost
+          REDIS_PORT: !Ref RedisPort
+          DATABASE_HOST: !Ref DatabaseHost
+          DATABASE_PORT: !Ref DatabasePort
+          DATABASE_DATABASE: !Ref DatabaseDatabase
+          DATABASE_USERNAME: !Ref DatabaseUsername
+          DATABASE_PASSWORD: !Ref DatabasePassword
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonAPIGatewayInvokeFullAccess
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        Format: esm
+        OutExtension:
+          - .js=.mjs
+        EntryPoints:
+          - main.ts
+        Banner:
+          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+  ProjectsFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ProjectsFunction
+      Principal: apigateway.amazonaws.com
+
+  TokensFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/packages/tokens/
+      Handler: main.handler
+      Runtime: nodejs20.x
+      Architectures:
+        - arm64
+      MemorySize: 512
+      Timeout: 10
+      Description: Handles tokens
+      VpcConfig:
+        SubnetIds:
+          - !Ref VpcSubnetId1
+          - !Ref VpcSubnetId2
+        SecurityGroupIds:
+          - !Ref VpcSecurityGroupId
+      Environment:
+        Variables:
+          REDIS_HOST: !Ref RedisHost
+          REDIS_PORT: !Ref RedisPort
+          DATABASE_HOST: !Ref DatabaseHost
+          DATABASE_PORT: !Ref DatabasePort
+          DATABASE_DATABASE: !Ref DatabaseDatabase
+          DATABASE_USERNAME: !Ref DatabaseUsername
+          DATABASE_PASSWORD: !Ref DatabasePassword
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonAPIGatewayInvokeFullAccess
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        Format: esm
+        OutExtension:
+          - .js=.mjs
+        EntryPoints:
+          - main.ts
+        Banner:
+          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+  TokensFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TokensFunction
+      Principal: apigateway.amazonaws.com
+
+  VisualisationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/packages/visualisations/
+      Handler: main.handler
+      Runtime: nodejs20.x
+      Architectures:
+        - arm64
+      MemorySize: 512
+      Timeout: 10
+      Description: Handles visualisations
+      VpcConfig:
+        SubnetIds:
+          - !Ref VpcSubnetId1
+          - !Ref VpcSubnetId2
+        SecurityGroupIds:
+          - !Ref VpcSecurityGroupId
+      Environment:
+        Variables:
+          REDIS_HOST: !Ref RedisHost
+          REDIS_PORT: !Ref RedisPort
+          DATABASE_HOST: !Ref DatabaseHost
+          DATABASE_PORT: !Ref DatabasePort
+          DATABASE_DATABASE: !Ref DatabaseDatabase
+          DATABASE_USERNAME: !Ref DatabaseUsername
+          DATABASE_PASSWORD: !Ref DatabasePassword
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonAPIGatewayInvokeFullAccess
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        Format: esm
+        OutExtension:
+          - .js=.mjs
+        EntryPoints:
+          - main.ts
+        Banner:
+          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+  VisualisationsFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref VisualisationsFunction
+      Principal: apigateway.amazonaws.com
+
+  DataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/packages/data/
+      Handler: main.handler
+      Runtime: nodejs20.x
+      Architectures:
+        - arm64
+      MemorySize: 512
+      Timeout: 10
+      Description: Handles data
+      VpcConfig:
+        SubnetIds:
+          - !Ref VpcSubnetId1
+          - !Ref VpcSubnetId2
+        SecurityGroupIds:
+          - !Ref VpcSecurityGroupId
+      Environment:
+        Variables:
+          REDIS_HOST: !Ref RedisHost
+          REDIS_PORT: !Ref RedisPort
+          DATABASE_HOST: !Ref DatabaseHost
+          DATABASE_PORT: !Ref DatabasePort
+          DATABASE_DATABASE: !Ref DatabaseDatabase
+          DATABASE_USERNAME: !Ref DatabaseUsername
+          DATABASE_PASSWORD: !Ref DatabasePassword
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonAPIGatewayInvokeFullAccess
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2020
+        Sourcemap: true
+        Format: esm
+        OutExtension:
+          - .js=.mjs
+        EntryPoints:
+          - main.ts
+        Banner:
+          - js=import { createRequire } from 'module'; const require = createRequire(import.meta.url);
+  DataFunctionPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - ApiGateway
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DataFunction
+      Principal: apigateway.amazonaws.com
+
+Outputs:
+  WebEndpoint:
+    Description: "API Gateway endpoint URL"
+    Value:
+      !Join [
+        "",
+        [
+          "wss://",
+          !Ref ApiGateway,
+          ".execute-api.",
+          !Ref "AWS::Region",
+          ".amazonaws.com/",
+          !Ref "Stage",
+        ],
+      ]

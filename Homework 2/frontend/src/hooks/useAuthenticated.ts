@@ -1,29 +1,33 @@
-import { useContext, useEffect } from "react"
-import { AuthContext } from "../reducer/auth/context"
-import { useNavigate } from "react-router-dom"
+import { useCallback, useContext, useEffect, useState } from "react"
+import { UsersContext } from "../reducer/users/context"
 
-export const useAuthenticated = () => {
-    const [authState, authDispatch] = useContext(AuthContext)
-    const navigate = useNavigate()
+export const useAuthenticated = (areReducersLoaded: boolean) => {
+    const [usersState, usersDispatch] = useContext(UsersContext)
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(undefined)
+
+    const checkIfAuthenticated = useCallback(() => {
+        if (typeof isAuthenticated === 'boolean' || !areReducersLoaded) {
+            return
+        }
+
+        if (usersState.login.data.isAuthenticated) {
+            return setIsAuthenticated(true)
+        }
+
+        if (!usersState.login.data.tokens?.session) {
+            return setIsAuthenticated(false)
+        }
+
+        if (usersState.login.fetching) {
+            return
+        }
+
+        usersDispatch({ type: 'login', data: usersState.login.data.tokens })
+    }, [areReducersLoaded, usersState, usersDispatch, isAuthenticated, setIsAuthenticated])
 
     useEffect(() => {
-        if (authState.loading) {
-            authDispatch({ type: 'hydrate' })
-        } else if (!authState.isAuthenticated) {
-            navigate('/')
-        }
-    }, [authState])
-}
+        checkIfAuthenticated()
+    }, [checkIfAuthenticated])
 
-export const useNotAuthenticated = () => {
-    const [authState, authDispatch] = useContext(AuthContext)
-    const navigate = useNavigate()
-
-    useEffect(() => {
-        if (authState.loading) {
-            authDispatch({ type: 'hydrate' })
-        } else if (authState.isAuthenticated) {
-            navigate('/')
-        }
-    }, [authState])
+    return isAuthenticated
 }

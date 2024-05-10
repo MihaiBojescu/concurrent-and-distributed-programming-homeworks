@@ -8,9 +8,12 @@ export const useTimeout = (milliseconds: number, callback: () => void, dependenc
     }, dependencies)
 
     const end = () => {
-        if (timeout.current) {
-            clearTimeout(timeout.current)
+        if (!timeout.current) {
+            return
         }
+
+        clearTimeout(timeout.current)
+        timeout.current = null
     }
 
     useEffect(() => {

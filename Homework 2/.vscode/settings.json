@@ -1,0 +1,5 @@
+{
+    "yaml.schemas": {
+        "https://raw.githubusercontent.com/aws/serverless-application-model/main/samtranslator/schema/schema.json": "file:///home/mihai/Documents/Personal/Facultate/Master%20Anul%201/Distributed%20and%20concurrent%20programming/Homeworks/Homework%202/infrastructure/cache.yaml"
+    }
+}

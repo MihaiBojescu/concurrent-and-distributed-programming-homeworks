@@ -6,23 +6,52 @@
 }
 
 .text-field {
+    width: 100%;
     padding: 1rem;
-    border: 1px solid var(--medium-color);
-    border-radius: calc(var(--default-border-radius) / 2);
-    margin-bottom: var(--default-input-margin);
+    border: 1px solid var(--light-color);
+    border-radius: calc(var(--m-border-radius) / 2);
+    background: var(--lighter-color);
+    color: var(--dark-color);
+}
+
+.text-field-invalid {
+    background: var(--negative-color);
+}
+
+.dropdown-field {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid var(--light-color);
+    border-radius: calc(var(--m-border-radius) / 2);
+    background: var(--lighter-color);
     color: var(--dark-color);
 }
 
 .button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     padding: 1rem;
-    margin-bottom: var(--default-input-margin);
-    border: 1px solid var(--medium-color);
-    border-radius: calc(var(--default-border-radius) / 2);
-    background: var(--light-color);
+    border: 1px solid var(--light-color);
+    border-radius: calc(var(--m-border-radius) / 2);
+    background: var(--lighter-color);
     color: var(--dark-color);
+    width: 100%;
+    animation: 50ms;
+}
+
+.button:active:not(:disabled) {
+    background: var(--normal-color);
 }
 
 .button:disabled {
     background: var(--white-color);
-    color: var(--medium-color);
+    color: var(--light-color);
+}
+
+.button-row {
+    display: flex;
+    flex-direction: row;
+    gap: var(--xs-size);
 }

@@ -1,0 +1,24 @@
+[
+    {
+      "id": 1,
+      "ownerId": "ownerId1",
+      "name": "Awesome Unity Games",
+      "url": "https://github.com/akinmustafa/awesome-unity-games",
+      "description": "A curated list of useful open-source Unity games in alphabetical order."
+    },
+    {
+      "id": 2,
+      "ownerId": "ownerId2",
+      "name": "Lane Detection System",
+      "url": "https://github.com/Vatshayan/Road-Detection-System",
+      "description": "Road safety is always an area that concerned many people around the world and systems that aid the drivers have been appearing ever since cars and computers were combined to make driving safer and more efficient. There are plenty of systems that are able to warn drivers about different types of dangers: lane departure, collision possibility and various traffic signs. However, there is still room for development, because modern technologies, like the rising vision about the OPEN-CV, allow us to create much more efficient systems."
+    },
+    {
+      "id": 3,
+      "ownerId": "ownerId3",
+      "name": "Co2 Emission Prediction Using Machine Learning",
+      "url": "https://github.com/Vatshayan/Co2-Emission-Prediction-Using-Machine-Learning",
+      "description": "In most of the developing countries, the increasing rate of Carbon emissions is considered as a major cause of concern. India is leading in terms of CO2 emissions as compared to other countries. This study is a preliminary evaluation of the situation of CO2 emissions in Italy, reviewing the international and national literature, using global datasets, and using data mining techniques for analysis and prediction. The study used descriptive methods. It focuses on finding the main potential parameters that affect the concentration of CO2 emissions based on energy resources. To get predictions here machine learning algorithms will be applied."
+    }
+]
+  

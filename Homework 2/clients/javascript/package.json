@@ -1,0 +1,12 @@
+{
+  "name": "project-client-node",
+  "version": "1.0.0",
+  "description": "PCD homework 2, node client",
+  "main": "src/client.mjs",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}

@@ -1,28 +1,43 @@
-.h1, .h2, .h3, .h3, .h5, .h6, .p, .span {
+.h1, .h2, .h3, .h3, .h5, .h6, .p, .span, .div {
     font-family: sans-serif;
     color: var(--dark-color);
+
 }
 
 .h1 {
+    margin: var(--m-size) 0;
     font-size: 3rem;
 }
 
 .h2 {
+    margin: var(--m-size) 0;
     font-size: 2.5rem;
 }
 
 .h3 {
+    margin: var(--m-size) 0;
     font-size: 2rem;
 }
 
 .h4 {
+    margin: var(--m-size) 0;
     font-size: 1.5rem;
 }
 
 .h5 {
+    margin: var(--m-size) 0;
     font-size: 1.25rem;
 }
 
 .h6 {
+    margin: var(--m-size) 0;
     font-size: 1rem;
+}
+
+.div {
+    overflow: scroll;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
 }

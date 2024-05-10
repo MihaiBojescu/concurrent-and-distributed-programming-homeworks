@@ -1,0 +1,19 @@
+{
+    "name": "pcd-homework-2-tokens",
+    "type": "module",
+    "main": "main.mjs",
+    "description": "Second PCD homework, tokens lambda",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {},
+    "dependencies": {
+        "aws-sdk": "^2.1585.0",
+        "pg": "^8.11.3",
+        "redis": "^4.6.13",
+        "esbuild": "^0.20.2"
+    },
+    "devDependencies": {
+        "@types/pg": "^8.11.4",
+        "@types/redis": "^4.0.11"
+    }
+}
