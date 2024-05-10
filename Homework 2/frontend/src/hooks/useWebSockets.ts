@@ -105,10 +105,7 @@ export const useWebSockets = (url: string, timeout: number): ManagedWebSocket =>
         const requestId = crypto.randomUUID()
         const requestListener = internalRequest(requestId, action, data)
 
-        const then = Date.now()
         const result = await requestListener.promise
-        console.log('action', action, Date.now()-then)
-
         return result
     }
 
