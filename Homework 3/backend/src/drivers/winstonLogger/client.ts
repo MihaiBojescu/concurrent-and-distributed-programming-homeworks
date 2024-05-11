@@ -1,13 +1,18 @@
 import winston from 'winston'
 import { ILoggingClient } from '../base/logging'
 
+type Params = {
+    level?: string
+}
+
 type Self = {
     client: winston.Logger
 }
 
-export const makeAxiosClient = (): ILoggingClient => {
+export const makeWinstonClient = (params?: Params): ILoggingClient => {
     const self: Self = {
         client: winston.createLogger({
+            level: params?.level || 'info',
             format: winston.format.combine(
                 winston.format.errors(),
                 winston.format.prettyPrint()

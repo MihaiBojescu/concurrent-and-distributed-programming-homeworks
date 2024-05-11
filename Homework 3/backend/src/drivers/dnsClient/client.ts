@@ -2,7 +2,8 @@ import { Resolver } from "dns/promises";
 import { IDNSClient } from "../base/dns";
 
 type Params = {
-    server: string
+    host: string
+    port: number
 }
 
 type Self = {
@@ -14,7 +15,7 @@ export const makeDNSClient = (params: Params): IDNSClient => {
         client: new Resolver()
     }
 
-    self.client.setServers([params.server])
+    self.client.setServers([`${params.host}:${params.port}`])
 
     return {
         resolve4: resolve4(self)

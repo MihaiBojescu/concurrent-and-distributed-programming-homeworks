@@ -1,16 +1,20 @@
-import { PeersRepository } from "../../repository/peers"
+import os from 'os'
+import { Peer, PeersRepository } from "../../repository/peers"
 import { IDNSClient } from '../../drivers/base/dns'
+import { ILoggingClient } from "../../drivers/base/logging"
 
 type Params = {
+    logger: ILoggingClient
     dnsClient: IDNSClient
     repository: PeersRepository
-    port: number
+    self: Peer
 }
 
 type Self = {
+    logger: ILoggingClient
     dnsClient: IDNSClient
     repository: PeersRepository
-    port: number
+    self: Peer
 }
 
 export interface UpdatePeersService {
@@ -19,9 +23,10 @@ export interface UpdatePeersService {
 
 export const makeUpdatePeersService = (params: Params) => {
     const self: Self = {
+        logger: params.logger,
         dnsClient: params.dnsClient,
         repository: params.repository,
-        port: params.port
+        self: params.self,
     }
 
     return {
@@ -30,20 +35,21 @@ export const makeUpdatePeersService = (params: Params) => {
 }
 
 const run = (self: Self): UpdatePeersService['run'] => async () => {
+    const interfaces = os.networkInterfaces();
+    const localAddresses = Object
+        .keys(interfaces)
+        .map(entry =>
+            interfaces[entry]!.filter(iface => !iface.internal && iface.family === 'IPv4').map(iface => iface.address))
+        .reduce((acc, interfaces) => acc.concat(interfaces))
+
     const clients = await self.dnsClient.resolve4('application.local')
-    const oldClients = await self.repository.get()
-    const difference = oldClients.filter((entryA) => !clients.find((entryB) => entryA.host === entryB))
+    const trimmedClients = clients.filter(clientA => !localAddresses.find(clientB => clientA === clientB))
+    const mappedClients = trimmedClients.map<Peer>(client => ({
+        host: client,
+        port: self.self.port
+    }))
 
-    for (const client of clients) {
-        await self.repository.add({
-            host: client,
-            port: self.port,
-        })
-    }
+    await self.repository.set(mappedClients)
 
-    for (const client of difference) {
-        await self.repository.remove(client)
-    }
-
-    console.log('Updated peers')
+    self.logger.debug('[Peers update service] Updated peers', { peers: trimmedClients })
 }

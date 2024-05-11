@@ -1,9 +1,11 @@
 import { IHTTPClient, IHTTPClientResponse } from "../../drivers/base/httpClient"
 import { IHTTPServerRequest } from "../../drivers/base/httpServer"
+import { ILoggingClient } from "../../drivers/base/logging"
 import { Peer, PeersRepository } from "../../repository/peers"
 import { Statistics, StatisticsRepository } from "../../repository/statistics"
 
 type Params = {
+    logger: ILoggingClient
     statisticsRepository: StatisticsRepository
     peersRepository: PeersRepository
     client: IHTTPClient
@@ -12,6 +14,7 @@ type Params = {
 }
 
 type Self = {
+    logger: ILoggingClient
     statisticsRepository: StatisticsRepository
     peersRepository: PeersRepository
     client: IHTTPClient
@@ -27,6 +30,7 @@ export interface ApplicationForwardingService {
 
 export const makeApplicationForwardingService = (params: Params): ApplicationForwardingService => {
     const self: Self = {
+        logger: params.logger,
         statisticsRepository: params.statisticsRepository,
         peersRepository: params.peersRepository,
         client: params.client,
@@ -41,9 +45,13 @@ export const makeApplicationForwardingService = (params: Params): ApplicationFor
 }
 
 const run = (self: Self): ApplicationForwardingService['run'] => async <RequestHeaders extends Record<string, string>, RequestQuery extends Record<string, string>, RequestBody, ResponseHeaders extends Record<string, string>, ResponseBody>(req: IHTTPServerRequest<RequestHeaders, RequestQuery, RequestBody>) => {
+    self.logger.info(`[Application forward service] Received request from IP ${req.ip}`)
+
     const method = req.method.toLocaleLowerCase() as keyof IHTTPClient
 
     if ('X-Was-Triaged' in req.headers && req.headers['X-Was-Triaged'] === 'true') {
+        self.logger.info(`[Application forward service] Request was triaged before, executing locally`)
+
         await self.statisticsRepository.incrementTasks()
         delete req.headers['X-Was-Triaged']
         const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${self.app.host}:${self.app.port}${req.path}`, req.headers, req.query, req.body)
@@ -55,7 +63,11 @@ const run = (self: Self): ApplicationForwardingService['run'] => async <RequestH
 
     const bestPeer = await self.pickBestPeer()
 
+    self.logger.info(`[Application forward service] Best peer picked`, { peer: bestPeer })
+
     if (bestPeer === self.app) {
+        self.logger.info(`[Application forward service] Best peer is self, executing locally`)
+
         await self.statisticsRepository.incrementTasks()
         delete req.headers['X-Was-Triaged']
         const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${bestPeer.port}${req.path}`, req.headers, req.query, req.body)
@@ -64,11 +76,14 @@ const run = (self: Self): ApplicationForwardingService['run'] => async <RequestH
         return response
     }
 
+    self.logger.info(`[Application forward service] Best peer is not self, executing remotely on peer`)
+
     const headers = { ...req.headers, 'X-Was-Triaged': 'true' }
     const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${bestPeer.port}${req.path}`, headers, req.query, req.body)
 
-    return response
+    console.log({ response })
 
+    return response
 }
 
 const pickBestPeer = (self: Self): Self['pickBestPeer'] => async () => {

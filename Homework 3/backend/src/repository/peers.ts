@@ -15,8 +15,7 @@ type Self = {
 
 export type PeersRepository = {
     get(): Promise<Peer[]>
-    add(peer: Peer): Promise<void>
-    remove(peer: Peer): Promise<void>
+    set(peers: Peer[]): Promise<void>
 }
 
 export const makePeersRepository = (params: Params): PeersRepository => {
@@ -26,8 +25,7 @@ export const makePeersRepository = (params: Params): PeersRepository => {
 
     return {
         get: get(self),
-        add: add(self),
-        remove: remove(self)
+        set: set(self)
     }
 }
 
@@ -35,35 +33,6 @@ const get = (self: Self): PeersRepository['get'] => async () => {
     return await self.client.get('peers') || []
 }
 
-const add = (self: Self): PeersRepository['add'] => async (peer) => {
-    const peers = await self.client.get<Peer[]>('peers')
-
-    if (!peers) {
-        await self.client.set('peers', [peer])
-        return
-    }
-
-    if (peers.includes(peer)) {
-        return
-    }
-
-    peers.push(peer)
-    await self.client.set('peers', peers)
-}
-
-const remove = (self: Self): PeersRepository['remove'] => async (peer) => {
-    const peers = await self.client.get<Peer[]>('peers')
-
-    if (!peers) {
-        return
-    }
-
-    const index = peers.indexOf(peer)
-
-    if (index === -1) {
-        return
-    }
-
-    peers.splice(index, 1)
+const set = (self: Self): PeersRepository['set'] => async (peers) => {
     await self.client.set('peers', peers)
 }
