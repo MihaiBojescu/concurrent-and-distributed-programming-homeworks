@@ -1,0 +1,63 @@
+name: simple-web-server
+
+services:
+  dns:
+    build: 
+      context: .
+      dockerfile: dns.Dockerfile
+    networks: 
+      example:
+        ipv4_address: 10.0.0.2
+
+  balancer1:
+    image: pcd3-load-balancer:latest
+    networks: 
+      example:
+        ipv4_address: 10.0.0.3
+    environment:
+      - APPLICATION_HOST=10.0.0.4
+      - APPLICATION_PORT=3000
+      - DNS_HOST=10.0.0.2
+      - LOG_LEVEL=info
+    ports:
+      - 2024:2024
+      - 2025:2025
+    depends_on:
+      - application1
+
+  application1:
+    build: 
+      context: .
+      dockerfile: app.Dockerfile
+    networks: 
+      example:
+        ipv4_address: 10.0.0.4
+
+  balancer2:
+    image: pcd3-load-balancer:latest
+    networks: 
+      example:
+        ipv4_address: 10.0.0.5
+    environment:
+      - APPLICATION_HOST=10.0.0.6
+      - APPLICATION_PORT=3000
+      - DNS_HOST=10.0.0.2
+      - LOG_LEVEL=info
+    depends_on:
+      - application2
+
+  application2:
+    build: 
+      context: .
+      dockerfile: app.Dockerfile
+    networks: 
+      example:
+        ipv4_address: 10.0.0.6
+
+networks:
+  example:
+    ipam:
+      driver: default
+      config:
+        - subnet: "10.0.0.0/24"
+

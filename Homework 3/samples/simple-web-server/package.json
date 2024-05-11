@@ -1,0 +1,19 @@
+{
+  "name": "simple-web-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Simple web server",
+  "main": "src/index.mjs",
+  "scripts": {
+    "start": "node src/index.mjs"
+  },
+  "keywords": [
+    "web",
+    "server"
+  ],
+  "author": "Mihai Bojescu",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
