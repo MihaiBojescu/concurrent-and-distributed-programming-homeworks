@@ -10,6 +10,7 @@ type Params = {
     peersRepository: PeersRepository
     client: IHTTPClient
     peersToAsk: number
+    forwarder: Peer
     app: Peer
 }
 
@@ -19,6 +20,7 @@ type Self = {
     peersRepository: PeersRepository
     client: IHTTPClient
     peersToAsk: number
+    forwarder: Peer
     app: Peer
 
     pickBestPeer(): Promise<Peer>
@@ -35,6 +37,7 @@ export const makeApplicationForwardingService = (params: Params): ApplicationFor
         peersRepository: params.peersRepository,
         client: params.client,
         peersToAsk: params.peersToAsk,
+        forwarder: params.forwarder,
         app: params.app
     } as Self
     self.pickBestPeer = pickBestPeer(self)
@@ -79,9 +82,7 @@ const run = (self: Self): ApplicationForwardingService['run'] => async <RequestH
     self.logger.info(`[Application forward service] Best peer is not self, executing remotely on peer`)
 
     const headers = { ...req.headers, 'X-Was-Triaged': 'true' }
-    const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${bestPeer.port}${req.path}`, headers, req.query, req.body)
-
-    console.log({ response })
+    const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${self.forwarder.port}${req.path}`, headers, req.query, req.body)
 
     return response
 }
@@ -116,7 +117,7 @@ const pickBestPeer = (self: Self): Self['pickBestPeer'] => async () => {
             return acc
         }
 
-        if (peer.statistics.tasksInQueue < acc.statistics.tasksInQueue) {
+        if (peer.statistics.tasksInQueue < acc.statistics.tasksInQueue || peer.statistics.loadAverage.oneMin < acc.statistics.loadAverage.oneMin) {
             return peer
         }
 

@@ -1,3 +1,4 @@
+import http from 'http'
 import * as axios from 'axios'
 import { IHTTPClient, IHTTPClientResponse } from '../base/httpClient'
 
@@ -9,11 +10,12 @@ type Self = {
 
 export const makeAxiosClient = (): IHTTPClient => {
     const self: Self = {
-        client: axios.default.create()
+        client: axios.default.create({
+            validateStatus: () => true,
+            httpAgent: new http.Agent({ keepAlive: true }),
+        })
     } as Self
     self.transformResponse = transformResponse()
-
-    self.client.defaults.validateStatus = () => true
 
     return {
         get: get(self),

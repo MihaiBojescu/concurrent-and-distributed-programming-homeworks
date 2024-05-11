@@ -60,6 +60,10 @@ export const main = async () => {
         peersRepository,
         statisticsRepository,
         peersToAsk: env.get().PEERS_TO_ASK,
+        forwarder: {
+            host: env.get().HOST,
+            port: env.get().PORT
+        },
         app: {
             host: env.get().APPLICATION_HOST,
             port: env.get().APPLICATION_PORT
