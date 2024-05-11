@@ -108,8 +108,6 @@ const run = (self: Self): Self['run'] => () => {
 
         const callbacks = self.getAllCallbacksFor(second, minute, hour, day, dayOfTheWeek, month, year)
 
-        console.log(second, callbacks)
-
         for (const callback of callbacks) {
             await callback()
         }
