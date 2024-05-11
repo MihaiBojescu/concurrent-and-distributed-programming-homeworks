@@ -18,6 +18,9 @@ import { makeUpdatePeersService } from "./service/peers/update"
 import { makeDNSClient } from "./drivers/dnsClient/client"
 import { makeWinstonClient } from "./drivers/winstonLogger/client"
 import { makeUpdateStatisticsCronJobs } from "./cron/statistics"
+import { makeGetPeersController } from "./controller/peers/get"
+import { makeGetPeersService } from "./service/peers/get"
+import { makePeersRoutes } from "./routes/peers"
 
 export const main = async () => {
     const env = makeTidyEnvClient({
@@ -44,16 +47,7 @@ export const main = async () => {
     const peersRepository = makePeersRepository({ client: cache })
 
     const getStatisticsService = makeGetStatisticsService({ logger, repository: statisticsRepository })
-    const updateStatisticsService = makeUpdateStatisticsService({ logger, repository: statisticsRepository })
-    const updatePeersService = makeUpdatePeersService({
-        logger,
-        dnsClient,
-        repository: peersRepository,
-        self: {
-            host: env.get().MANAGEMENT_HOST,
-            port: env.get().MANAGEMENT_PORT
-        }
-    })
+    const getPeersService = makeGetPeersService({ logger, repository: peersRepository })
     const applicationForwardingService = makeApplicationForwardingService({
         logger,
         client: httpClient,
@@ -69,14 +63,26 @@ export const main = async () => {
             port: env.get().APPLICATION_PORT
         }
     })
+    const updateStatisticsService = makeUpdateStatisticsService({ logger, repository: statisticsRepository })
+    const updatePeersService = makeUpdatePeersService({
+        logger,
+        dnsClient,
+        repository: peersRepository,
+        self: {
+            host: env.get().MANAGEMENT_HOST,
+            port: env.get().MANAGEMENT_PORT
+        }
+    })
 
-    const getStatisticsController = makeGetStatisticsController({ service: getStatisticsService })
-    const applicationForwardingController = makeApplicationForwardingController({ service: applicationForwardingService })
+    const getStatisticsController = makeGetStatisticsController({ logger, service: getStatisticsService })
+    const getPeersController = makeGetPeersController({ logger, service: getPeersService })
+    const applicationForwardingController = makeApplicationForwardingController({ logger, service: applicationForwardingService })
 
     makeStatisticsRoutes({ server: managementServer, getStatisticsController })
+    makePeersRoutes({ server: managementServer, getPeersController })
+    makeApplicationForwardingRoutes({ server: applicationForwardingServer, applicationForwardingController })
     makeUpdatePeersCronJobs({ client: cronClient, updatePeersService })
     makeUpdateStatisticsCronJobs({ client: cronClient, updateStatisticsService })
-    makeApplicationForwardingRoutes({ server: applicationForwardingServer, applicationForwardingController })
 
     managementServer.start(env.get().MANAGEMENT_HOST, env.get().MANAGEMENT_PORT)
     applicationForwardingServer.start(env.get().HOST, env.get().PORT)
