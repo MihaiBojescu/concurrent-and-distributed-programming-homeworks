@@ -1,6 +1,5 @@
 export type IHTTPClientResponse<Headers, Body> = {
-    url: string,
-    statusCode: string
+    statusCode: number
     headers: Headers
     body: Body
 }

@@ -1,4 +1,5 @@
 res/
+temp/
 node_modules/
 tsconfig.tsbuildinfo
 build/

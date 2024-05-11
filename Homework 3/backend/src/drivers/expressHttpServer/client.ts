@@ -15,6 +15,7 @@ export const makeExpressClient = (): IHTTPServer => {
     self.app.use(bodyParser.json())
 
     return {
+        all: all(self),
         get: get(self),
         post: post(self),
         patch: patch(self),
@@ -22,6 +23,13 @@ export const makeExpressClient = (): IHTTPServer => {
         delete: remove(self),
         start: start(self)
     }
+}
+
+const all = (self: Self): IHTTPServer['all'] => (path, callback) => {
+    self.app.all(path, async (req, res) => {
+        const result = await callback(req as any)
+        res.status(result.statusCode).send(result.body)
+    })
 }
 
 const get = (self: Self): IHTTPServer['get'] => (path, callback) => {
