@@ -43,6 +43,10 @@ const add = (self: Self): PeersRepository['add'] => async (peer) => {
         return
     }
 
+    if (peers.includes(peer)) {
+        return
+    }
+
     peers.push(peer)
     await self.client.set('peers', peers)
 }
@@ -54,6 +58,12 @@ const remove = (self: Self): PeersRepository['remove'] => async (peer) => {
         return
     }
 
-    peers.splice(peers.indexOf(peer), 1)
+    const index = peers.indexOf(peer)
+
+    if (index === -1) {
+        return
+    }
+
+    peers.splice(index, 1)
     await self.client.set('peers', peers)
 }

@@ -1,16 +1,22 @@
 import { tidyEnv } from "tidyenv"
+import { makeApplicationForwardingController } from "./controller/application/forward"
 import { makeGetStatisticsController } from "./controller/statistics/get"
+import { makeUpdatePeersCronJobs } from "./cron/peers"
+import { makeAxiosClient } from "./drivers/axiosHttpClient/client"
+import { makeCronClient } from "./drivers/cronClient/client"
 import { makeExpressClient } from "./drivers/expressHttpServer/client"
 import { makeInMemoryCacheClient } from "./drivers/inMemoryCache/client"
 import { makeTidyEnvClient } from "./drivers/tidyenvEnvironmentClient/client"
-import { makeStatisticsRepository } from "./repository/statistics"
-import { makeStatisticsRoutes } from "./routes/statistics"
-import { makeGetStatisticsService } from "./service/statistics/get"
 import { makePeersRepository } from "./repository/peers"
-import { makeApplicationForwardingService } from "./service/application/forward"
-import { makeAxiosClient } from "./drivers/axiosHttpClient/client"
-import { makeApplicationForwardingController } from "./controller/application/forward"
+import { makeStatisticsRepository } from "./repository/statistics"
 import { makeApplicationForwardingRoutes } from "./routes/forward"
+import { makeStatisticsRoutes } from "./routes/statistics"
+import { makeApplicationForwardingService } from "./service/application/forward"
+import { makeGetStatisticsService } from "./service/statistics/get"
+import { makeUpdateStatisticsService } from "./service/statistics/update"
+import { makeUpdatePeersService } from "./service/peers/update"
+import { makeDNSClient } from "./drivers/dnsClient/client"
+import { makeUpdateStatisticsCronJobs } from "./cron/statistics"
 
 export const main = async () => {
     const env = makeTidyEnvClient({
@@ -20,9 +26,12 @@ export const main = async () => {
         MANAGEMENT_PORT: tidyEnv.num({ default: 2025 }),
         APPLICATION_HOST: tidyEnv.str(),
         APPLICATION_PORT: tidyEnv.num(),
+        DNS_HOST: tidyEnv.str({ default: '127.0.0.1' }),
         PEERS_TO_ASK: tidyEnv.num({ default: 5 })
     })
+    const cronClient = makeCronClient()
     const httpClient = makeAxiosClient()
+    const dnsClient = makeDNSClient({ server: env.get().DNS_HOST })
     const cache = makeInMemoryCacheClient()
     const managementServer = makeExpressClient()
     const applicationForwardingServer = makeExpressClient()
@@ -31,6 +40,8 @@ export const main = async () => {
     const peersRepository = makePeersRepository({ client: cache })
 
     const getStatisticsService = makeGetStatisticsService({ repository: statisticsRepository })
+    const updateStatisticsService = makeUpdateStatisticsService({ repository: statisticsRepository })
+    const updatePeersService = makeUpdatePeersService({ dnsClient, repository: peersRepository, port: env.get().PORT })
     const applicationForwardingService = makeApplicationForwardingService({
         client: httpClient,
         peersRepository,
@@ -46,6 +57,8 @@ export const main = async () => {
     const applicationForwardingController = makeApplicationForwardingController({ service: applicationForwardingService })
 
     makeStatisticsRoutes({ server: managementServer, getStatisticsController })
+    makeUpdatePeersCronJobs({ client: cronClient, updatePeersService })
+    makeUpdateStatisticsCronJobs({ client: cronClient, updateStatisticsService })
     makeApplicationForwardingRoutes({ server: applicationForwardingServer, applicationForwardingController })
 
     managementServer.start(env.get().MANAGEMENT_HOST, env.get().MANAGEMENT_PORT)

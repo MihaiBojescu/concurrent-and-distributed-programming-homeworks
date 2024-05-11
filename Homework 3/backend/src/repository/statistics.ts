@@ -21,14 +21,14 @@ type Self = {
 }
 
 const defaultStatistics: Statistics = {
-    tasksInQueue: -1,
+    tasksInQueue: 0,
     loadAverage: {
-        oneMin: -1,
-        fiveMin: -1,
-        fifteenMin: -1,
+        oneMin: 0,
+        fiveMin: 0,
+        fifteenMin: 0,
     },
     memory: {
-        free: -1
+        free: 0
     }
 }
 
@@ -37,6 +37,7 @@ export type StatisticsRepository = {
     set(statistics: Statistics): Promise<void>
     incrementTasks(): Promise<void>
     decrementTasks(): Promise<void>
+    updateStatistics(statistics: Omit<Statistics, 'tasksInQueue'>): Promise<void>
 }
 
 export const makeStatisticsRepository = (params: Params): StatisticsRepository => {
@@ -49,6 +50,7 @@ export const makeStatisticsRepository = (params: Params): StatisticsRepository =
         set: set(self),
         incrementTasks: incrementTasks(self),
         decrementTasks: decrementTasks(self),
+        updateStatistics: updateStatistics(self),
     }
 }
 
@@ -70,4 +72,9 @@ const decrementTasks = (self: Self): StatisticsRepository['decrementTasks'] => a
     const statistics = await self.client.get<Statistics>('statistics') || defaultStatistics
     statistics.tasksInQueue = statistics.tasksInQueue < 0 ? 0 : statistics.tasksInQueue - 1
     await self.client.set('statistics', statistics)
+}
+
+const updateStatistics = (self: Self): StatisticsRepository['updateStatistics'] => async (statistics) => {
+    const oldStatistics = await self.client.get<Statistics>('statistics') || defaultStatistics
+    await self.client.set('statistics', { ...oldStatistics, ...statistics })
 }
