@@ -29,23 +29,17 @@ export const balancersSlice = createSlice({
         }
     },
     selectors: {
-        rootBalancer(state) {
+        getRootBalancer(state) {
             return state.rootBalancer
         },
-        peers(state) {
+        getPeers(state) {
             return state.peers
         },
-        statistics(state) {
+        getStatistics(state) {
             return state.statistics
         }
     },
     reducers: {
-        setRootLoadBalancer(state, action: PayloadAction<{ host: string, port: number }>) {
-            state.rootBalancer = {
-                host: action.payload.host,
-                port: action.payload.port,
-            }
-        },
         stopFetchingStatistics(state) {
             if (state.timer !== null) {
                 clearInterval(state.timer)
@@ -110,8 +104,16 @@ export const balancersSlice = createSlice({
         }
     },
     extraReducers(builder) {
-        builder.addCase('balancers/setRootLoadBalancer', (state) => {
-            localStorage.setItem('reducers/balancers/rootBalancer', JSON.stringify(state.rootBalancer))
+        builder.addCase(verifyAndSetRootBalancer.pending, (state, action) => {
+            state.fetching = true
+        })
+        builder.addCase(verifyAndSetRootBalancer.fulfilled, (state, action) => {
+            state.fetching = false
+            state.rootBalancer = action.payload
+            localStorage.setItem('reducers/balancers/rootBalancer', JSON.stringify(action.payload))
+        })
+        builder.addCase(verifyAndSetRootBalancer.rejected, (state, action) => {
+            state.fetching = false
         })
         builder.addCase(fetchPeers.pending, (state) => {
             state.fetching = true
@@ -139,11 +141,26 @@ export const balancersSlice = createSlice({
 export type BalancersState = ReturnType<typeof balancersSlice.getInitialState>
 export type BalancersActions = typeof balancersSlice.actions
 
-export const getRootBalancer = balancersSlice.selectors.rootBalancer
-export const getPeers = balancersSlice.selectors.peers
-export const getStatistics = balancersSlice.selectors.statistics
+export const getRootBalancer = balancersSlice.selectors.getRootBalancer
+export const getPeers = balancersSlice.selectors.getPeers
+export const getStatistics = balancersSlice.selectors.getStatistics
 
-export const setRootLoadBalancer = balancersSlice.actions.setRootLoadBalancer
+export const stopFetchingStatistics = balancersSlice.actions.stopFetchingStatistics
+
+export const verifyAndSetRootBalancer = createAsyncThunk<
+    Peer,
+    Peer,
+    {
+        rejectValue: Error
+    }
+>('balancer/verifyRootBalancer', async (arg, thunkAPI) => {
+    try {
+        await getStatisticsRequest(arg)
+        return arg
+    } catch (error) {
+        return thunkAPI.rejectWithValue(new Error(`Invalid root balancer\n${(error as Error).message}`))
+    }
+})
 
 export const fetchPeers = createAsyncThunk<
     Peer[],

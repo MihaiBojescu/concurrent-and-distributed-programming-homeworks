@@ -10,6 +10,8 @@ import { Button } from "../../components/input/button";
 import { ButtonRow } from "../../components/input/buttonRow";
 import { Form } from "../../components/input/form";
 import { Spacing } from "../../components/spacing/spacing";
+import { Spin } from "../../components/animate/spin";
+import { Image } from "../../components/image/image";
 
 export const BalancerSelectionPage: FC = () => {
     const logic = useLoadBalancerSelection()
@@ -27,7 +29,14 @@ export const BalancerSelectionPage: FC = () => {
                     <Spacing spacing="m" />
                     <ButtonRow>
                         <Button onClick={logic.clear} type="button">Clear</Button>
-                        <Button disabled={logic.isSubmitDisabled} type="submit">Set</Button>
+                        <Button disabled={logic.isSubmitDisabled} type="submit">
+                            {!logic.isLoading
+                                ? 'Set'
+                                : <Spin >
+                                    <Image id="gear" />
+                                </Spin >
+                            }
+                        </Button>
                     </ButtonRow>
                 </Form>
             </Card>
