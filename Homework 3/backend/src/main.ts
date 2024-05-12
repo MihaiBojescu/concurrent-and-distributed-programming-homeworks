@@ -71,6 +71,10 @@ export const main = async () => {
         self: {
             host: env.get().MANAGEMENT_HOST,
             port: env.get().MANAGEMENT_PORT
+        },
+        app: {
+            host: env.get().APPLICATION_HOST,
+            port: env.get().APPLICATION_PORT
         }
     })
 

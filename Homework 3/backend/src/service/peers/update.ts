@@ -8,6 +8,7 @@ type Params = {
     dnsClient: IDNSClient
     repository: PeersRepository
     self: Peer
+    app: Peer
 }
 
 type Self = {
@@ -15,6 +16,7 @@ type Self = {
     dnsClient: IDNSClient
     repository: PeersRepository
     self: Peer
+    app: Peer
 }
 
 export interface UpdatePeersService {
@@ -27,6 +29,7 @@ export const makeUpdatePeersService = (params: Params) => {
         dnsClient: params.dnsClient,
         repository: params.repository,
         self: params.self,
+        app: params.app,
     }
 
     return {
@@ -45,8 +48,11 @@ const run = (self: Self): UpdatePeersService['run'] => async () => {
     const clients = await self.dnsClient.resolve4('application.local')
     const trimmedClients = clients.filter((clientA, indexA) =>
         !localAddresses.find(clientB => clientA === clientB) &&
-        !clients.find((clientB, indexB) => indexA < indexB && clientA === clientB)
+        !clients.find((clientB, indexB) => indexA < indexB && clientA === clientB) &&
+        clientA !== self.self.host &&
+        clientA !== self.app.host
     )
+    console.log({ trimmedClients })
     const mappedClients = trimmedClients.map<Peer>(client => ({
         host: client,
         port: self.self.port

@@ -51,36 +51,34 @@ export const makeApplicationForwardingService = (params: Params): ApplicationFor
 
 const run = (self: Self): ApplicationForwardingService['run'] => async <RequestHeaders extends Record<string, string>, RequestQuery extends Record<string, string>, RequestBody, ResponseHeaders extends Record<string, string>, ResponseBody>(req: IHTTPServerRequest<RequestHeaders, RequestQuery, RequestBody>) => {
     const method = req.method.toLowerCase() as keyof IHTTPClient
+    let willExecuteLocally = false
 
     try {
         if ('X-Was-Triaged' in req.headers && req.headers['X-Was-Triaged'] === 'true') {
-            self.logger.info(`[Application forward service] Request was triaged before, executing locally`)
+            self.logger.info(`[Application forward service] Request was previously before, executing locally`)
+            willExecuteLocally = true
 
             await self.statisticsRepository.incrementTasks()
             delete req.headers['X-Was-Triaged']
             const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${self.app.host}:${self.app.port}${req.path}`, req.headers, req.query, req.body)
-            await self.statisticsRepository.decrementTasks()
 
             return response
         }
 
-
         const bestPeer = await self.pickBestPeer()
+        willExecuteLocally = bestPeer === self.app
 
-        self.logger.info(`[Application forward service] Best peer picked`, { peer: bestPeer })
-
-        if (bestPeer === self.app) {
+        if (willExecuteLocally) {
             self.logger.info(`[Application forward service] Best peer is self, executing locally`)
 
             await self.statisticsRepository.incrementTasks()
             delete req.headers['X-Was-Triaged']
             const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${bestPeer.port}${req.path}`, req.headers, req.query, req.body)
-            await self.statisticsRepository.decrementTasks()
 
             return response
         }
 
-        self.logger.info(`[Application forward service] Best peer is not self, executing remotely on peer`)
+        self.logger.info(`[Application forward service] Best peer is not self, executing remotely on peer`, { peer: bestPeer })
 
         const headers = { ...req.headers, 'X-Was-Triaged': 'true' }
         const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${self.forwarder.port}${req.path}`, headers, req.query, req.body)
@@ -134,6 +132,10 @@ const run = (self: Self): ApplicationForwardingService['run'] => async <RequestH
             }
         )
         throw new InternalServerError('Internal server error', { cause: error })
+    } finally {
+        if (willExecuteLocally) {
+            await self.statisticsRepository.decrementTasks()
+        }
     }
 }
 
