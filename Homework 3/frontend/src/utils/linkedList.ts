@@ -11,6 +11,8 @@ export interface ILinkedList<T> {
     pop(): T | null
     unshift(item: T): void
     shift(): T | null
+
+    toObject(): Self<T>
 }
 
 type Node<T> = {
@@ -19,21 +21,27 @@ type Node<T> = {
     value: T
 }
 
+type Params<T> = Self<T>
+
 type Self<T> = {
     first: Node<T> | null
     last: Node<T> | null
     length: number
 }
 
-export const makeLinkedList = <T>(): ILinkedList<T> => {
-    const self: Self<T> = {
+export type EjectedLinkedList<T> = Self<T>
+
+export const makeLinkedList = <T>(params?: Params<T>): ILinkedList<T> => {
+    const self: Self<T> = params || {
         first: null,
         last: null,
         length: 0
     }
 
-    return new Proxy({
-        length: self.length,
+    return {
+        get length() {
+            return self.length
+        },
         get: get(self),
         first: first(self),
         last: last(self),
@@ -42,15 +50,9 @@ export const makeLinkedList = <T>(): ILinkedList<T> => {
         pop: pop(self),
         unshift: unshift(self),
         shift: shift(self),
-    }, {
-        get(target, prop, receiver) {
-            if (prop === 'length') {
-                return self.length
-            }
 
-            return Reflect.get(target, prop, receiver)
-        }
-    })
+        toObject: toObject(self)
+    }
 }
 
 const get = <T>(self: Self<T>): ILinkedList<T>['get'] => index => {
@@ -61,7 +63,7 @@ const get = <T>(self: Self<T>): ILinkedList<T>['get'] => index => {
     if (index < 0 || index > self.length) {
         return null
     }
-    
+
     if (index > self.length / 2) {
         let current = self.last
 
@@ -89,7 +91,7 @@ const last = <T>(self: Self<T>): ILinkedList<T>['last'] => () => {
     return self.first?.value || null
 }
 
-const values = <T>(self: Self<T>): ILinkedList<T>['values'] => function*() {
+const values = <T>(self: Self<T>): ILinkedList<T>['values'] => function* () {
     let current = self.first
 
     while (current) {
@@ -186,4 +188,8 @@ const shift = <T>(self: Self<T>): ILinkedList<T>['shift'] => () => {
     self.length -= 1
 
     return value
+}
+
+const toObject = <T>(self: Self<T>): ILinkedList<T>['toObject'] => () => {
+    return self
 }
