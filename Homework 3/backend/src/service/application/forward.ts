@@ -48,7 +48,7 @@ export const makeApplicationForwardingService = (params: Params): ApplicationFor
 }
 
 const run = (self: Self): ApplicationForwardingService['run'] => async <RequestHeaders extends Record<string, string>, RequestQuery extends Record<string, string>, RequestBody, ResponseHeaders extends Record<string, string>, ResponseBody>(req: IHTTPServerRequest<RequestHeaders, RequestQuery, RequestBody>) => {
-    const method = req.method.toLocaleLowerCase() as keyof IHTTPClient
+    const method = req.method.toLowerCase() as keyof IHTTPClient
 
     if ('X-Was-Triaged' in req.headers && req.headers['X-Was-Triaged'] === 'true') {
         self.logger.info(`[Application forward service] Request was triaged before, executing locally`)
