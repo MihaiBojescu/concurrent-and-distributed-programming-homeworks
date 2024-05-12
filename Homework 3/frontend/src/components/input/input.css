@@ -23,8 +23,16 @@
     padding: 1rem;
     border: 1px solid var(--light-color);
     border-radius: calc(var(--m-border-radius) / 2);
-    background: var(--lighter-color);
     color: var(--dark-color);
+}
+
+.dropdown-field:active:not(:disabled) {
+    background: var(--lighter-color);
+}
+
+.dropdown-field:disabled {
+    background: var(--white-color);
+    color: var(--light-color);
 }
 
 .button {

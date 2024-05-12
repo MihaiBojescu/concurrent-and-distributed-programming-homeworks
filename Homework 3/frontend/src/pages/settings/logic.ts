@@ -10,10 +10,22 @@ export const useSettingsPageLogic = () => {
     const dispatch = useAppDispatch()
     const [fetchingInterval, setFetchingInterval] = useState('2000')
     const [fetchingInstances, setFetchingInstances] = useState('60')
+    const [theme, setThemeInternally] = useState<'light' | 'dark'>('light')
     const [isFetchingIntervalValid, setIsFetchingIntervalValid] = useState(true)
     const [isFetchingInstancesValid, setIsFetchingInstancesValid] = useState(true)
 
     const isSubmitDisabled = !isFetchingIntervalValid
+
+    const setTheme = (value: string) => {
+        switch (value) {
+            case 'light':
+                return setThemeInternally('light')
+            case 'dark':
+                return setThemeInternally('dark')
+            default:
+                return setThemeInternally('light')
+        }
+    }
 
     const onSubmit = useCallback(async () => {
         if (isSubmitDisabled) {
@@ -21,6 +33,7 @@ export const useSettingsPageLogic = () => {
         }
         try {
             unwrapResult(await dispatch(setSettings({
+                theme,
                 fetching: {
                     interval: Number(fetchingInterval),
                     instances: Number(fetchingInstances)
@@ -40,7 +53,7 @@ export const useSettingsPageLogic = () => {
                 type: 'negative'
             }))
         }
-    }, [fetchingInterval, fetchingInstances, isSubmitDisabled, navigate, dispatch])
+    }, [fetchingInterval, fetchingInstances, theme, isSubmitDisabled, navigate, dispatch])
 
     useEffect(() => {
         const fetchIntervalNumber = Number(fetchingInterval.trim())
@@ -57,8 +70,10 @@ export const useSettingsPageLogic = () => {
     return {
         fetchingInterval,
         fetchingInstances,
+        theme,
         setFetchingInterval,
         setFetchingInstances,
+        setTheme,
         isFetchingIntervalValid,
         isFetchingInstancesValid,
 

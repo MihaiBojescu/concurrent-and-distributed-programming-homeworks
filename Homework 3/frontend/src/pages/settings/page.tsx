@@ -12,6 +12,7 @@ import { TextField } from "../../components/input/textfield";
 import { Spacing } from "../../components/spacing/spacing";
 import { P } from "../../components/typography/p";
 import { Form } from "../../components/input/form";
+import { Dropdown } from "../../components/input/dropdown";
 
 export const SettingsPage: FC = () => {
     const logic = useSettingsPageLogic()
@@ -28,11 +29,19 @@ export const SettingsPage: FC = () => {
             <Page centered>
                 <Form onSubmit={logic.onSubmit}>
                     <Card width={384}>
-                        <H1>Settings <Image id={"gear"} size="xl" /></H1>
+                        <H1>Settings <Image id="gear" size="xl"/></H1>
                         <P>Data fetching</P>
                         <List>
                             <TextField value={logic.fetchingInterval} onChange={logic.setFetchingInterval} invalid={!logic.isFetchingIntervalValid} placeholder="Fetch interval (ms, [1000, 10000])" />
                             <TextField value={logic.fetchingInstances} onChange={logic.setFetchingInstances} invalid={!logic.isFetchingInstancesValid} placeholder="Instances (number, [10, 60])" />
+                        </List>
+                        <Spacing spacing="m" />
+                        <P>Theme</P>
+                        <List>
+                            <Dropdown value={logic.theme} onChange={logic.setTheme} disabled placeholder="Dark or light theme">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </Dropdown>
                         </List>
                         <Spacing spacing="m" />
                         <Button disabled={logic.isSubmitDisabled} type="submit">Set</Button>

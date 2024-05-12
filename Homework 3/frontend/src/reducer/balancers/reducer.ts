@@ -3,6 +3,8 @@ import { ToTimeSeries, WithTimestamp } from "../common/types";
 import { AppDispatch, RootState } from "../store";
 import { getPeersRequest, getStatisticsRequest } from "./api";
 import { Peer, Statistics } from "./types";
+import { Settings } from "../settings/types";
+import { setSettings } from "../settings/reducer";
 
 export type BalancersState = ReturnType<typeof balancersSlice.getInitialState>
 export type BalancersActions = typeof balancersSlice.actions
@@ -10,22 +12,29 @@ export type BalancersActions = typeof balancersSlice.actions
 export const balancersSlice = createSlice({
     name: 'balancers',
     initialState: () => {
-        const existingStorage = localStorage.getItem('reducers/balancers/rootBalancer')
+        const existingRootBalancer = localStorage.getItem('reducers/balancers/rootBalancer')
+        const existingSettings = localStorage.getItem('reducers/settings/fetching')
         let rootBalancer: Peer | undefined = undefined
+        let settings: Settings['fetching'] = {
+            interval: 1000,
+            instances: 60,
+        }
 
-        if (existingStorage) {
+        if (existingRootBalancer) {
             try {
-                const parsed = JSON.parse(existingStorage) as Peer
-                rootBalancer = {
-                    host: parsed.host,
-                    port: parsed.port
-                }
+                rootBalancer = JSON.parse(existingRootBalancer) as Peer
+            } catch { }
+        }
+
+        if (existingSettings) {
+            try {
+                settings = JSON.parse(existingSettings) as Settings['fetching']
             } catch { }
         }
 
         return {
+            settings: settings,
             timer: null as NodeJS.Timeout | null,
-            fetching: false,
             rootBalancer,
             peers: [] as Peer[],
             statistics: {} as Record<string, ToTimeSeries<WithTimestamp<Statistics>>>
@@ -86,7 +95,7 @@ export const balancersSlice = createSlice({
                     continue
                 }
 
-                if (existingData.timestamp.length > 59) {
+                if (existingData.timestamp.length >= state.settings.instances) {
                     existingData.timestamp.shift()
                     existingData.tasksInQueue.shift()
                     existingData.loadAverage.oneMin.shift()
@@ -107,39 +116,20 @@ export const balancersSlice = createSlice({
         },
     },
     extraReducers(builder) {
-        builder.addCase(verifyAndSetRootBalancer.pending, (state) => {
-            state.fetching = true
+        builder.addCase(setSettings.fulfilled, (state, action) => {
+            state.settings = action.payload.fetching
         })
         builder.addCase(verifyAndSetRootBalancer.fulfilled, (state, action) => {
-            state.fetching = false
             state.rootBalancer = action.payload
             localStorage.setItem('reducers/balancers/rootBalancer', JSON.stringify(action.payload))
         })
-        builder.addCase(verifyAndSetRootBalancer.rejected, (state, action) => {
-            state.fetching = false
-        })
-        builder.addCase(fetchPeers.pending, (state) => {
-            state.fetching = true
-        })
         builder.addCase(fetchPeers.fulfilled, (state, action) => {
-            state.fetching = false
             state.peers = action.payload
-        })
-        builder.addCase(fetchPeers.rejected, (state) => {
-            state.fetching = false
-        })
-        builder.addCase(startFetchingStatistics.pending, (state) => {
-            state.fetching = true
         })
         builder.addCase(startFetchingStatistics.fulfilled, (state, action) => {
             state.timer = action.payload
-            state.fetching = false
-        })
-        builder.addCase(startFetchingStatistics.rejected, (state) => {
-            state.fetching = false
         })
         builder.addCase(eraseRootLoadBalancer.fulfilled, (state) => {
-            state.fetching = false
             state.rootBalancer = undefined
             state.peers = []
             state.statistics = {}
@@ -225,7 +215,7 @@ export const startFetchingStatistics = createAsyncThunk<
         thunkAPI.dispatch(balancersSlice.actions.setPeerStatistics(statistics));
     };
 
-    const timer = setInterval(request, 1000)
+    const timer = setInterval(request, state.balancers.settings.interval)
     await request()
 
     return timer
