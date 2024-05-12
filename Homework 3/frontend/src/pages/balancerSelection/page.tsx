@@ -29,12 +29,12 @@ export const BalancerSelectionPage: FC = () => {
             } />
             <Page centered>
                 <Card>
-                    <Form onSubmit={logic.submit}>
+                    <Form onSubmit={logic.onSubmit}>
                         <H1>Node selection <Image id="project" size="xl"/></H1>
                         <P>Please select the root load balancer.</P>
                         <List>
-                            <TextField value={logic.host} onChange={logic.setHost} invalid={logic.isHostValid} />
-                            <TextField value={logic.port} onChange={logic.setPort} invalid={logic.isPortValid} />
+                            <TextField value={logic.host} onChange={logic.setHost} invalid={!logic.isHostValid} placeholder="IP address" />
+                            <TextField value={logic.port} onChange={logic.setPort} invalid={!logic.isPortValid} placeholder="Port number" />
                         </List>
                         <Spacing spacing="m" />
                         <ButtonRow>

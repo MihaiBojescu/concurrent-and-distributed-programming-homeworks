@@ -7,6 +7,11 @@ import { useSettingsPageLogic } from "./logic";
 import { Header } from "../../components/header/header";
 import { HeaderActionSlot } from "../../components/header/headerActionsSlot";
 import { Button } from "../../components/input/button";
+import { List } from "../../components/list/list";
+import { TextField } from "../../components/input/textfield";
+import { Spacing } from "../../components/spacing/spacing";
+import { P } from "../../components/typography/p";
+import { Form } from "../../components/input/form";
 
 export const SettingsPage: FC = () => {
     const logic = useSettingsPageLogic()
@@ -21,9 +26,18 @@ export const SettingsPage: FC = () => {
                 </HeaderActionSlot>
             } />
             <Page centered>
-                <Card width={384} centered>
-                    <H1>Settings <Image id={"gear"} size="xl"/></H1>
-                </Card>
+                <Form onSubmit={logic.onSubmit}>
+                    <Card width={384}>
+                        <H1>Settings <Image id={"gear"} size="xl" /></H1>
+                        <P>Data fetching</P>
+                        <List>
+                            <TextField value={logic.fetchingInterval} onChange={logic.setFetchingInterval} invalid={!logic.isFetchingIntervalValid} placeholder="Fetch interval (ms, [1000, 10000])" />
+                            <TextField value={logic.fetchingInstances} onChange={logic.setFetchingInstances} invalid={!logic.isFetchingInstancesValid} placeholder="Instances (number, [10, 60])" />
+                        </List>
+                        <Spacing spacing="m" />
+                        <Button disabled={logic.isSubmitDisabled} type="submit">Set</Button>
+                    </Card>
+                </Form>
             </Page>
         </>
     )

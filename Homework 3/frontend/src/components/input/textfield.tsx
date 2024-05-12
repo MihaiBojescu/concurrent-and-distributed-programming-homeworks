@@ -14,6 +14,6 @@ export const TextField: React.FC<Props> = ({ value, onChange, placeholder, inval
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className={`text-field ${!invalid && 'text-field-invalid'}`}
+        className={`text-field ${invalid && 'text-field-invalid'}`}
     />
 }

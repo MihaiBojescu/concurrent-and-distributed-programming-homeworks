@@ -21,14 +21,14 @@ export const BalancerStatisticsPage: FC = () => {
                 left={
                     <HeaderActionSlot>
                         <Button onClick={logic.onClickBack}>
-                            <Image id="back" size="m" />
+                            <Image id="back" />
                         </Button>
                     </HeaderActionSlot>
                 }
                 right={
                     <HeaderActionSlot>
                         <Button onClick={logic.onClickOnSettings}>
-                            <Image id="gear" size="m" />
+                            <Image id="gear" />
                         </Button>
                     </HeaderActionSlot>
                 }

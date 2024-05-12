@@ -17,7 +17,7 @@ export const useLoadBalancerSelectionPageLogic = () => {
 
     const isSubmitDisabled = !isHostValid || !isPortValid || isLoading || submitError !== undefined
 
-    const submit = useCallback(async () => {
+    const onSubmit = useCallback(async () => {
         try {
             if (isSubmitDisabled) {
                 return
@@ -76,7 +76,7 @@ export const useLoadBalancerSelectionPageLogic = () => {
         isHostValid,
         isPortValid,
 
-        submit,
+        onSubmit,
         isSubmitDisabled,
         isLoading,
 

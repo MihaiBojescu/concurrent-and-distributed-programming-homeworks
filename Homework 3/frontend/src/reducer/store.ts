@@ -1,10 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { balancersSlice } from './balancers/reducer'
 import { useDispatch, useSelector } from 'react-redux'
+import { balancersSlice } from './balancers/reducer'
 import { notificationsSlice } from './notifications/reducer'
+import { settingsSlice } from './settings/reducer'
 
 export const store = configureStore({
   reducer: {
+    settingsSlice: settingsSlice.reducer,
     notifications: notificationsSlice.reducer,
     balancers: balancersSlice.reducer,
   },
