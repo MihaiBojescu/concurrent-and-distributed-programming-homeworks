@@ -8,12 +8,12 @@ interface Props {
     masked?: boolean
 }
 
-export const TextField: React.FC<Props> = ({ value, onChange, placeholder, masked }) => {
+export const TextField: React.FC<Props> = ({ value, onChange, placeholder, invalid, masked }) => {
     return <input
         type={!masked ? "text" : "password"}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="text-field"
+        className={`text-field ${!invalid && 'text-field-invalid'}`}
     />
 }

@@ -10,7 +10,7 @@ export const useLoadBalancerSelection = () => {
     const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false)
     const [host, setHost] = useState('127.0.0.1')
-    const [port, setPort] = useState('2024')
+    const [port, setPort] = useState('2025')
     const [isHostValid, setIsHostValid] = useState(true)
     const [isPortValid, setIsPortValid] = useState(true)
     const [submitError, setSubmitError] = useState<undefined | string>(undefined)
@@ -27,13 +27,22 @@ export const useLoadBalancerSelection = () => {
             const wrappedResult = await dispatch(verifyAndSetRootBalancer({ host, port: Number(port) }))
             unwrapResult(wrappedResult)
             setIsLoading(false)
+            
+            dispatch(addNotification({
+                title: 'Get peers succeeded',
+                description: 'Redirecting...',
+                type: 'positive'
+            }))
 
             navigate('/app/statistics')
         } catch (error) {
             setIsLoading(false)
             setSubmitError((error as Error).message)
+            setIsHostValid(false)
+            setIsPortValid(false)
+
             dispatch(addNotification({
-                title: 'Set root load balancer error',
+                title: 'Set root load balancer failed',
                 description: (error as Error).message,
                 type: 'negative'
             }))
