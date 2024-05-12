@@ -6,7 +6,7 @@ export const useNotFoundPage = () => {
     const navigate = useNavigate()
 
     const timeout = useTimeout(2000, () => {
-        navigate('/app')
+        navigate('/')
     }, [])
 
     useEffect(() => {

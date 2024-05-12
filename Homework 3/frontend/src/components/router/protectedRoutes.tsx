@@ -3,11 +3,16 @@ import { useSelector } from "react-redux";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { getRootBalancer } from "../../reducer/balancers/reducer";
 
-export const ProtectedRoutes: FC = () => {
+type Props = {
+    redirectTo: string
+    protect?: boolean
+}
+
+export const ProtectedRoutes: FC<Props> = ({ redirectTo, protect }) => {
     const rootBalancer = useSelector(getRootBalancer)
     const location = useLocation()
 
-    return rootBalancer
+    return (protect === true ? rootBalancer : !rootBalancer)
         ? <Outlet />    
-        : <Navigate to="/app" replace state={{ from: location }} />;
+        : <Navigate to={redirectTo} replace state={{ from: location }} />;
 }
