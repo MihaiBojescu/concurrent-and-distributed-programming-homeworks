@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { svg } from '../../../resources/svg'
+import { svg } from '../../resources/svg'
 
 interface Props {
     id: keyof typeof svg,

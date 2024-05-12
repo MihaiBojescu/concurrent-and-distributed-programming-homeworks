@@ -47,7 +47,7 @@ export const Visualisation: FC<Props> = ({ visualisationId, name, description, t
             <H3>{name}</H3>
             <CardCenteredElement>
                 {
-                    !data?.length
+                    !mappedData?.length
                         ? <Image id="wind" size="xl" scaleFactor={5} />
                         : <ReactApexChart
                             type={(type as ReactApexChart['props']['type']) || 'area'}
