@@ -1,8 +1,10 @@
+import { AxiosError } from "axios"
 import { IHTTPClient, IHTTPClientResponse } from "../../drivers/base/httpClient"
 import { IHTTPServerRequest } from "../../drivers/base/httpServer"
 import { ILoggingClient } from "../../drivers/base/logging"
 import { Peer, PeersRepository } from "../../repository/peers"
 import { Statistics, StatisticsRepository } from "../../repository/statistics"
+import { BadGatewayError, GatewayTimeoutError, InternalServerError } from "../../utils/errors"
 
 type Params = {
     logger: ILoggingClient
@@ -50,39 +52,89 @@ export const makeApplicationForwardingService = (params: Params): ApplicationFor
 const run = (self: Self): ApplicationForwardingService['run'] => async <RequestHeaders extends Record<string, string>, RequestQuery extends Record<string, string>, RequestBody, ResponseHeaders extends Record<string, string>, ResponseBody>(req: IHTTPServerRequest<RequestHeaders, RequestQuery, RequestBody>) => {
     const method = req.method.toLowerCase() as keyof IHTTPClient
 
-    if ('X-Was-Triaged' in req.headers && req.headers['X-Was-Triaged'] === 'true') {
-        self.logger.info(`[Application forward service] Request was triaged before, executing locally`)
+    try {
+        if ('X-Was-Triaged' in req.headers && req.headers['X-Was-Triaged'] === 'true') {
+            self.logger.info(`[Application forward service] Request was triaged before, executing locally`)
 
-        await self.statisticsRepository.incrementTasks()
-        delete req.headers['X-Was-Triaged']
-        const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${self.app.host}:${self.app.port}${req.path}`, req.headers, req.query, req.body)
-        await self.statisticsRepository.decrementTasks()
+            await self.statisticsRepository.incrementTasks()
+            delete req.headers['X-Was-Triaged']
+            const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${self.app.host}:${self.app.port}${req.path}`, req.headers, req.query, req.body)
+            await self.statisticsRepository.decrementTasks()
+
+            return response
+        }
+
+
+        const bestPeer = await self.pickBestPeer()
+
+        self.logger.info(`[Application forward service] Best peer picked`, { peer: bestPeer })
+
+        if (bestPeer === self.app) {
+            self.logger.info(`[Application forward service] Best peer is self, executing locally`)
+
+            await self.statisticsRepository.incrementTasks()
+            delete req.headers['X-Was-Triaged']
+            const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${bestPeer.port}${req.path}`, req.headers, req.query, req.body)
+            await self.statisticsRepository.decrementTasks()
+
+            return response
+        }
+
+        self.logger.info(`[Application forward service] Best peer is not self, executing remotely on peer`)
+
+        const headers = { ...req.headers, 'X-Was-Triaged': 'true' }
+        const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${self.forwarder.port}${req.path}`, headers, req.query, req.body)
 
         return response
+    } catch (error) {
+        const axiosError = error as AxiosError
+
+        if (axiosError.status === 502 || !axiosError.status || axiosError.code === 'ECONNRESET') {
+            self.logger.error(
+                'Bad gateway',
+                {
+                    baseUrl: axiosError.config?.baseURL,
+                    path: axiosError.config?.url,
+                    code: axiosError.code,
+                    statusCode: axiosError.status,
+                    name: axiosError.name,
+                    message: axiosError.message,
+                    stack: axiosError.stack
+                }
+            )
+            throw new BadGatewayError('Bad gateway', { cause: error })
+        }
+
+        if (axiosError.status === 504 || axiosError.code === 'ECONNABORTED') {
+            self.logger.error(
+                'Gateway timeout',
+                {
+                    baseUrl: axiosError.config?.baseURL,
+                    path: axiosError.config?.url,
+                    code: axiosError.code,
+                    statusCode: axiosError.status,
+                    name: axiosError.name,
+                    message: axiosError.message,
+                    stack: axiosError.stack
+                }
+            )
+            throw new GatewayTimeoutError('Gateway timeout', { cause: error })
+        }
+
+        self.logger.error(
+            'Internal server error',
+            {
+                baseUrl: axiosError.config?.baseURL,
+                path: axiosError.config?.url,
+                code: axiosError.code,
+                statusCode: axiosError.status,
+                name: axiosError.name,
+                message: axiosError.message,
+                stack: axiosError.stack
+            }
+        )
+        throw new InternalServerError('Internal server error', { cause: error })
     }
-
-
-    const bestPeer = await self.pickBestPeer()
-
-    self.logger.info(`[Application forward service] Best peer picked`, { peer: bestPeer })
-
-    if (bestPeer === self.app) {
-        self.logger.info(`[Application forward service] Best peer is self, executing locally`)
-
-        await self.statisticsRepository.incrementTasks()
-        delete req.headers['X-Was-Triaged']
-        const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${bestPeer.port}${req.path}`, req.headers, req.query, req.body)
-        await self.statisticsRepository.decrementTasks()
-
-        return response
-    }
-
-    self.logger.info(`[Application forward service] Best peer is not self, executing remotely on peer`)
-
-    const headers = { ...req.headers, 'X-Was-Triaged': 'true' }
-    const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${self.forwarder.port}${req.path}`, headers, req.query, req.body)
-
-    return response
 }
 
 const pickBestPeer = (self: Self): Self['pickBestPeer'] => async () => {

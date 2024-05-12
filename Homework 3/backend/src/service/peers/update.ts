@@ -43,7 +43,10 @@ const run = (self: Self): UpdatePeersService['run'] => async () => {
         .reduce((acc, interfaces) => acc.concat(interfaces))
 
     const clients = await self.dnsClient.resolve4('application.local')
-    const trimmedClients = clients.filter(clientA => !localAddresses.find(clientB => clientA === clientB))
+    const trimmedClients = clients.filter((clientA, indexA) =>
+        !localAddresses.find(clientB => clientA === clientB) &&
+        !clients.find((clientB, indexB) => indexA < indexB && clientA === clientB)
+    )
     const mappedClients = trimmedClients.map<Peer>(client => ({
         host: client,
         port: self.self.port
