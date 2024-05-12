@@ -1,7 +1,8 @@
 import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { Peer, Statistics, ToTimeSeries, WithTimestamp } from "./types";
-import { getPeersRequest, getStatisticsRequest } from "./api";
 import { makeLinkedList } from "../../utils/linkedList";
+import { ToTimeSeries, WithTimestamp } from "../common/types";
+import { getPeersRequest, getStatisticsRequest } from "./api";
+import { Peer, Statistics } from "./types";
 
 export const balancersSlice = createSlice({
     name: 'balancers',
@@ -20,6 +21,7 @@ export const balancersSlice = createSlice({
         }
 
         return {
+            timer: null as NodeJS.Timeout | null,
             fetching: false,
             rootBalancer,
             peers: [] as Peer[],
@@ -43,28 +45,15 @@ export const balancersSlice = createSlice({
                 host: action.payload.host,
                 port: action.payload.port,
             }
-        }
-    },
-    extraReducers(builder) {
-        builder.addCase('balancers/setRootLoadBalancer', (state) => {
-            localStorage.setItem('reducers/balancers/rootBalancer', JSON.stringify(state.rootBalancer))
-        })
-        builder.addCase(fetchPeers.pending, (state) => {
-            state.fetching = true
-        })
-        builder.addCase(fetchPeers.fulfilled, (state, action) => {
-            state.fetching = false
-            state.peers = action.payload
-        })
-        builder.addCase(fetchPeers.rejected, (state) => {
-            state.fetching = false
-        })
-        builder.addCase(fetchStatistics.pending, (state) => {
-            state.fetching = true
-        })
-        builder.addCase(fetchStatistics.fulfilled, (state, action) => {
-            state.fetching = false
+        },
+        stopFetchingStatistics(state) {
+            if (state.timer !== null) {
+                clearInterval(state.timer)
+            }
 
+            state.timer = null
+        },
+        setPeerStatistics(state, action: PayloadAction<Map<Peer, Statistics>>) {
             for (const peer of action.payload.keys()) {
                 const existingData = state.statistics.get(peer)
                 const value = action.payload.get(peer)!
@@ -118,8 +107,30 @@ export const balancersSlice = createSlice({
 
                 state.statistics.set(peer, existingData)
             }
+        }
+    },
+    extraReducers(builder) {
+        builder.addCase('balancers/setRootLoadBalancer', (state) => {
+            localStorage.setItem('reducers/balancers/rootBalancer', JSON.stringify(state.rootBalancer))
         })
-        builder.addCase(fetchStatistics.rejected, (state) => {
+        builder.addCase(fetchPeers.pending, (state) => {
+            state.fetching = true
+        })
+        builder.addCase(fetchPeers.fulfilled, (state, action) => {
+            state.fetching = false
+            state.peers = action.payload
+        })
+        builder.addCase(fetchPeers.rejected, (state) => {
+            state.fetching = false
+        })
+        builder.addCase(startFetchingStatistics.pending, (state) => {
+            state.fetching = true
+        })
+        builder.addCase(startFetchingStatistics.fulfilled, (state, action) => {
+            state.timer = action.payload
+            state.fetching = false
+        })
+        builder.addCase(startFetchingStatistics.rejected, (state) => {
             state.fetching = false
         })
     },
@@ -149,17 +160,27 @@ export const fetchPeers = createAsyncThunk<
     return peers
 })
 
-export const fetchStatistics = createAsyncThunk<
-    Map<Peer, Statistics>,
+export const startFetchingStatistics = createAsyncThunk<
+    NodeJS.Timeout,
     void,
     { state: BalancersState }
 >('balancers/getStatistics', async (_arg, thunkAPI) => {
     const state = thunkAPI.getState()
-    const statistics = new Map<Peer, Statistics>()
 
-    for (const peer of state.peers) {
-        statistics.set(peer, await getStatisticsRequest(peer))
-    }
+    if (state.timer) {
+        return state.timer
+    } 
 
-    return statistics
+    const timer = setInterval(async () => {
+        const statistics = new Map<Peer, Statistics>()
+        
+        await Promise.all(state.peers.map(async peer => {
+            const result = await getStatisticsRequest(peer)
+            statistics.set(peer, result)
+        }))
+    
+        thunkAPI.dispatch(balancersSlice.actions.setPeerStatistics(statistics))
+    }, 5000)
+
+    return timer
 })

@@ -1,13 +1,7 @@
 import { FC, useMemo } from "react";
 import ReactApexChart from "react-apexcharts";
-import { Card } from "../card/card";
-import { H3 } from "../typography/h3";
-import { Spacing } from "../spacing/spacing";
-import { CardCenteredElement } from "../card/cardCenteredElement";
-import { H6 } from "../typography/h6";
-import { P } from "../typography/p";
-import { Image } from "../image/image";
 import { ILinkedList } from "../../utils/linkedList";
+import { Image } from "../image/image";
 
 interface Props {
     visualisationId: string
