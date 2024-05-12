@@ -6,7 +6,7 @@ import { unwrapResult } from "@reduxjs/toolkit"
 import { addNotification } from "../../reducer/notifications/reducer"
 import { useNavigate } from "react-router-dom"
 
-export const useLoadBalancerStatistics = () => {
+export const useLoadBalancerStatisticsPageLogic = () => {
     const navigate = useNavigate()
     const dispatch = useAppDispatch()
     const rootBalancer = useSelector(getRootBalancer)
@@ -37,6 +37,11 @@ export const useLoadBalancerStatistics = () => {
         }
     }, [performPageInit, dispatch])
 
+
+    const onClickOnSettings = () => {
+        navigate('/app/settings')
+    }
+
     const onClickBack = () => {
         dispatch(eraseRootLoadBalancer())
         navigate('/app/selection')
@@ -48,6 +53,7 @@ export const useLoadBalancerStatistics = () => {
         peers,
         statistics,
 
+        onClickOnSettings,
         onClickBack
     }
 }

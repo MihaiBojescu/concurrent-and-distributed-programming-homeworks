@@ -3,6 +3,7 @@ import { NotificationType } from "../../reducer/notifications/types"
 import { H6 } from "../typography/h6"
 import { P } from "../typography/p"
 import './notifications.css'
+import { Image } from "../image/image"
 
 interface Props {
     type: NotificationType
@@ -33,7 +34,7 @@ export const Notification: FC<Props> = ({ type, title, description, onClick }) =
 
     return (
         <div className={`notification notification-${type}`} onClick={onClick}>
-            <H6>{title}</H6>
+            <H6>{title} <Image id={"notification"} size="m" /></H6>
             <P>{description}</P>
         </div>
     )

@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Page } from "../../components/page/page";
 import { Card } from "../../components/card/card";
 import { H1 } from "../../components/typography/h1";
-import { useLoadBalancerStatistics } from "./logic";
+import { useLoadBalancerStatisticsPageLogic } from "./logic";
 import { CardList } from "../../components/card/cardList";
 import { Visualisation } from "../../components/visualisations/visualisation";
 import { P } from "../../components/typography/p";
@@ -13,17 +13,26 @@ import { Image } from "../../components/image/image";
 import { Spin } from "../../components/animate/spin";
 
 export const BalancerStatisticsPage: FC = () => {
-    const logic = useLoadBalancerStatistics()
+    const logic = useLoadBalancerStatisticsPageLogic()
 
     return (
         <>
-            <Header left={
-                <HeaderActionSlot>
-                    <Button onClick={logic.onClickBack}>
-                        <Image id="back" size="m" />
-                    </Button>
-                </HeaderActionSlot>
-            } />
+            <Header
+                left={
+                    <HeaderActionSlot>
+                        <Button onClick={logic.onClickBack}>
+                            <Image id="back" size="m" />
+                        </Button>
+                    </HeaderActionSlot>
+                }
+                right={
+                    <HeaderActionSlot>
+                        <Button onClick={logic.onClickOnSettings}>
+                            <Image id="gear" size="m" />
+                        </Button>
+                    </HeaderActionSlot>
+                }
+            />
             <Page centered>
                 {!logic.isPageReady
                     ? (
@@ -45,8 +54,8 @@ export const BalancerStatisticsPage: FC = () => {
                                 }
 
                                 return (
-                                    <Card width={512}>
-                                        <H1>Node</H1>
+                                    <Card width={'40vw'}>
+                                        <H1>Node <Image id={"project"} size="xl" /></H1>
                                         <P>{`Address: ${peer.host}:${peer.port}`}</P>
                                         <P>Is root: {`${peer === logic.rootBalancer ? '✔️' : '❌'}`}</P>
                                         <Visualisation

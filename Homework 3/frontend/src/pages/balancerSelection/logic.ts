@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { unwrapResult } from "@reduxjs/toolkit"
 import { addNotification } from "../../reducer/notifications/reducer"
 
-export const useLoadBalancerSelection = () => {
+export const useLoadBalancerSelectionPageLogic = () => {
     const dispatch = useAppDispatch()
     const navigate = useNavigate()
     const [isLoading, setIsLoading] = useState(false)
@@ -49,9 +49,13 @@ export const useLoadBalancerSelection = () => {
         }
     }, [isSubmitDisabled, dispatch, host, port, navigate])
 
-    const clear = () => {
+    const onClickOnClear = () => {
         setHost('127.0.0.1')
         setPort('2024')
+    }
+
+    const onClickOnSettings = () => {
+        navigate('/app/settings')
     }
 
     useEffect(() => {
@@ -76,6 +80,7 @@ export const useLoadBalancerSelection = () => {
         isSubmitDisabled,
         isLoading,
 
-        clear
+        onClickOnClear,
+        onClickOnSettings
     }
 }

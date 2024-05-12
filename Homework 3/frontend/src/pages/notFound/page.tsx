@@ -4,10 +4,10 @@ import { Card } from "../../components/card/card";
 import { H3 } from "../../components/typography/h3";
 import { Image } from "../../components/image/image";
 import { P } from "../../components/typography/p";
-import { useNotFoundPage } from "./logic";
+import { useNotFoundPageLogic } from "./logic";
 
-export const NotFound: FC = () => {
-    useNotFoundPage()
+export const NotFoundPage: FC = () => {
+    useNotFoundPageLogic()
 
     return (
         <Page centered>
