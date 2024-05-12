@@ -38,7 +38,7 @@ export const balancersSlice = createSlice({
         }
     },
     reducers: {
-        setBaseUrl(state, action: PayloadAction<{ host: string, port: number }>) {
+        setRootLoadBalancer(state, action: PayloadAction<{ host: string, port: number }>) {
             state.rootBalancer = {
                 host: action.payload.host,
                 port: action.payload.port,
@@ -46,7 +46,7 @@ export const balancersSlice = createSlice({
         }
     },
     extraReducers(builder) {
-        builder.addCase('balancers/setBaseUrl', (state) => {
+        builder.addCase('balancers/setRootLoadBalancer', (state) => {
             localStorage.setItem('reducers/balancers/rootBalancer', JSON.stringify(state.rootBalancer))
         })
         builder.addCase(fetchPeers.pending, (state) => {
@@ -132,7 +132,7 @@ export const getRootBalancer = balancersSlice.selectors.rootBalancer
 export const getPeers = balancersSlice.selectors.peers
 export const getStatistics = balancersSlice.selectors.statistics
 
-export const setBaseUrl = balancersSlice.actions.setBaseUrl
+export const setRootLoadBalancer = balancersSlice.actions.setRootLoadBalancer
 
 export const fetchPeers = createAsyncThunk<
     Peer[],
