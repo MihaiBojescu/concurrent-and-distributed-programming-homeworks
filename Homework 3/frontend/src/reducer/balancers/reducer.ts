@@ -119,7 +119,7 @@ const getStatistics = createAsyncThunk<
     Map<Peer, Statistics>,
     void,
     { state: BalancersState }
->('balancers/get-peers', async (_arg, thunkAPI) => {
+>('balancers/get-statistics', async (_arg, thunkAPI) => {
     const state = thunkAPI.getState()
     const statistics = new Map<Peer, Statistics>()
 
