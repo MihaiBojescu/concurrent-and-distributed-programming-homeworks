@@ -12,13 +12,12 @@ import { ILinkedList } from "../../utils/linkedList";
 interface Props {
     visualisationId: string
     name: string
-    description: string
     type: string
     timestamps: ILinkedList<number>
     data: ILinkedList<number>
 }
 
-export const Visualisation: FC<Props> = ({ visualisationId, name, description, type, timestamps, data }) => {
+export const Visualisation: FC<Props> = ({ visualisationId, name, type, timestamps, data }) => {
     const mappedTimestamps = useMemo(() => [...timestamps.values()].map(entry => new Date(entry).toLocaleString()), [timestamps])
     const mappedData = useMemo(() => [...data.values()], [data])
 
@@ -43,30 +42,14 @@ export const Visualisation: FC<Props> = ({ visualisationId, name, description, t
     ], [mappedData, name])
 
     return (
-        <Card width={'42vw'}>
-            <H3>{name}</H3>
-            <CardCenteredElement>
-                {
-                    !mappedData?.length
-                        ? <Image id="wind" size="xl" scaleFactor={5} />
-                        : <ReactApexChart
-                            type={(type as ReactApexChart['props']['type']) || 'area'}
-                            options={options}
-                            series={series}
-                            height={384}
-                            width={'150%'}
-                        />
-                }
-            </CardCenteredElement>
-            <Spacing spacing="m" />
-            <H6>Visualisation id:</H6>
-            <P>{visualisationId}</P>
-            {description && (
-                <>
-                    <H6>Description:</H6>
-                    <P>{description}</P>
-                </>
-            )}
-        </Card>
+        !mappedData?.length
+            ? <Image id="wind" size="xl" scaleFactor={5} />
+            : <ReactApexChart
+                type={(type as ReactApexChart['props']['type']) || 'area'}
+                options={options}
+                series={series}
+                height={384}
+                width={'150%'}
+            />
     )
 }

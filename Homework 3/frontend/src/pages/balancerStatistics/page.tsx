@@ -1,13 +1,13 @@
 import { FC } from "react";
 import { Page } from "../../components/page/page";
-import { H1 } from "../../components/typography/h1";
 import { Card } from "../../components/card/card";
+import { H1 } from "../../components/typography/h1";
 
-export const RootPage: FC = () => {
+export const BalancerStatisticsPage: FC = () => {
     return (
         <Page centered>
             <Card>
-                <H1>TODO</H1>
+                <H1>Balancer statistics page</H1>
             </Card>
         </Page>
     )

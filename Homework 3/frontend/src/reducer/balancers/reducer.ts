@@ -5,36 +5,64 @@ import { makeLinkedList } from "../../utils/linkedList";
 
 export const balancersSlice = createSlice({
     name: 'balancers',
-    initialState: {
-        fetching: false,
-        rootBalancer: {
-            host: '',
-            port: -1
+    initialState: () => {
+        const existingStorage = localStorage.getItem('reducers/balancers/rootBalancer')
+        let rootBalancer: Peer | undefined = undefined
+
+        if (existingStorage) {
+            try {
+                const parsed = JSON.parse(existingStorage) as Peer
+                rootBalancer = {
+                    host: parsed.host,
+                    port: parsed.port
+                }
+            } catch { }
+        }
+
+        return {
+            fetching: false,
+            rootBalancer,
+            peers: [] as Peer[],
+            statistics: new Map<Peer, ToTimeSeries<WithTimestamp<Statistics>>>()
+        }
+    },
+    selectors: {
+        rootBalancer(state) {
+            return state.rootBalancer
         },
-        peers: [] as Peer[],
-        statistics: new Map<Peer, ToTimeSeries<WithTimestamp<Statistics>>>()
+        peers(state) {
+            return state.peers
+        },
+        statistics(state) {
+            return state.statistics
+        }
     },
     reducers: {
         setBaseUrl(state, action: PayloadAction<{ host: string, port: number }>) {
-            state.rootBalancer.host = action.payload.host
-            state.rootBalancer.port = action.payload.port
+            state.rootBalancer = {
+                host: action.payload.host,
+                port: action.payload.port,
+            }
         }
     },
     extraReducers(builder) {
-        builder.addCase(getPeers.pending, (state) => {
+        builder.addCase('balancers/setBaseUrl', (state) => {
+            localStorage.setItem('reducers/balancers/rootBalancer', JSON.stringify(state.rootBalancer))
+        })
+        builder.addCase(fetchPeers.pending, (state) => {
             state.fetching = true
         })
-        builder.addCase(getPeers.fulfilled, (state, action) => {
+        builder.addCase(fetchPeers.fulfilled, (state, action) => {
             state.fetching = false
             state.peers = action.payload
         })
-        builder.addCase(getPeers.rejected, (state) => {
+        builder.addCase(fetchPeers.rejected, (state) => {
             state.fetching = false
         })
-        builder.addCase(getStatistics.pending, (state) => {
+        builder.addCase(fetchStatistics.pending, (state) => {
             state.fetching = true
         })
-        builder.addCase(getStatistics.fulfilled, (state, action) => {
+        builder.addCase(fetchStatistics.fulfilled, (state, action) => {
             state.fetching = false
 
             for (const peer of action.payload.keys()) {
@@ -80,7 +108,7 @@ export const balancersSlice = createSlice({
                     existingData.loadAverage.fifteenMin.shift()
                     existingData.memory.free.shift()
                 }
-                
+
                 existingData.timestamp.push(Date.now())
                 existingData.tasksInQueue.push(value.tasksInQueue)
                 existingData.loadAverage.oneMin.push(value.loadAverage.oneMin)
@@ -91,7 +119,7 @@ export const balancersSlice = createSlice({
                 state.statistics.set(peer, existingData)
             }
         })
-        builder.addCase(getStatistics.rejected, (state) => {
+        builder.addCase(fetchStatistics.rejected, (state) => {
             state.fetching = false
         })
     },
@@ -100,26 +128,32 @@ export const balancersSlice = createSlice({
 export type BalancersState = ReturnType<typeof balancersSlice.getInitialState>
 export type BalancersActions = typeof balancersSlice.actions
 
-const getPeers = createAsyncThunk<
+export const getRootBalancer = balancersSlice.selectors.rootBalancer
+export const getPeers = balancersSlice.selectors.peers
+export const getStatistics = balancersSlice.selectors.statistics
+
+export const setBaseUrl = balancersSlice.actions.setBaseUrl
+
+export const fetchPeers = createAsyncThunk<
     Peer[],
     void,
     { state: BalancersState }
->('balancers/get-peers', async (_arg, thunkAPI) => {
+>('balancers/getPeers', async (_arg, thunkAPI) => {
     const state = thunkAPI.getState()
-    const peer: Peer = {
-        host: state.rootBalancer.host,
-        port: state.rootBalancer.port
+
+    if (!state.rootBalancer) {
+        return []
     }
 
-    const peers = await getPeersRequest(peer)
+    const peers = await getPeersRequest(state.rootBalancer)
     return peers
 })
 
-const getStatistics = createAsyncThunk<
+export const fetchStatistics = createAsyncThunk<
     Map<Peer, Statistics>,
     void,
     { state: BalancersState }
->('balancers/get-statistics', async (_arg, thunkAPI) => {
+>('balancers/getStatistics', async (_arg, thunkAPI) => {
     const state = thunkAPI.getState()
     const statistics = new Map<Peer, Statistics>()
 
