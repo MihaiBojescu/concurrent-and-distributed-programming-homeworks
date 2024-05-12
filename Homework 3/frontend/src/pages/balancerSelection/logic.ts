@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useAppDispatch } from "../../reducer/store"
 import { useNavigate } from "react-router-dom"
 import { unwrapResult } from "@reduxjs/toolkit"
+import { addNotification } from "../../reducer/notifications/reducer"
 
 export const useLoadBalancerSelection = () => {
     const dispatch = useAppDispatch()
@@ -31,6 +32,11 @@ export const useLoadBalancerSelection = () => {
         } catch (error) {
             setIsLoading(false)
             setSubmitError((error as Error).message)
+            dispatch(addNotification({
+                title: 'Set root load balancer error',
+                description: (error as Error).message,
+                type: 'negative'
+            }))
         }
     }, [isSubmitDisabled, dispatch, host, port, navigate])
 
