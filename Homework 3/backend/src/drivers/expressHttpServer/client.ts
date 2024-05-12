@@ -2,6 +2,7 @@ import { IHTTPServer } from "../base/httpServer";
 import { Application } from 'express-serve-static-core'
 import express from 'express'
 import bodyParser from 'body-parser'
+import cors from 'cors'
 
 type Self = {
     app: Application
@@ -12,6 +13,7 @@ export const makeExpressClient = (): IHTTPServer => {
         app: express()
     }
 
+    self.app.use(cors())
     self.app.use(bodyParser.json())
 
     return {
