@@ -1,9 +1,11 @@
 import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { makeLinkedList } from "../../utils/linkedList";
 import { ToTimeSeries, WithTimestamp } from "../common/types";
 import { AppDispatch, RootState } from "../store";
 import { getPeersRequest, getStatisticsRequest } from "./api";
 import { Peer, Statistics } from "./types";
+
+export type BalancersState = ReturnType<typeof balancersSlice.getInitialState>
+export type BalancersActions = typeof balancersSlice.actions
 
 export const balancersSlice = createSlice({
     name: 'balancers',
@@ -26,7 +28,7 @@ export const balancersSlice = createSlice({
             fetching: false,
             rootBalancer,
             peers: [] as Peer[],
-            statistics: new Map<Peer, ToTimeSeries<WithTimestamp<Statistics>>>()
+            statistics: {} as Record<string, ToTimeSeries<WithTimestamp<Statistics>>>
         }
     },
     selectors: {
@@ -48,41 +50,48 @@ export const balancersSlice = createSlice({
 
             state.timer = null
         },
-        setPeerStatistics(state, action: PayloadAction<Map<Peer, Statistics>>) {
-            for (const peer of action.payload.keys()) {
-                const existingData = state.statistics.get(peer)
-                const value = action.payload.get(peer)!
+        setPeerStatistics(state, action: PayloadAction<Record<string, Statistics>>) {
+            for (const peer of Object.keys(action.payload)) {
+                const existingData = state.statistics[peer]
+                const value = action.payload[peer]!
 
                 if (!existingData) {
-                    const timestamp = makeLinkedList<number>()
-                    const tasksInQueue = makeLinkedList<number>()
-                    const oneMin = makeLinkedList<number>()
-                    const fiveMin = makeLinkedList<number>()
-                    const fifteenMin = makeLinkedList<number>()
-                    const free = makeLinkedList<number>()
+                    const timestamp = []
+                    const tasksInQueue = []
+                    const oneMin = []
+                    const fiveMin = []
+                    const fifteenMin = []
+                    const free = []
 
-                    timestamp.push(Date.now())
+                    timestamp.push(new Date().toLocaleDateString())
                     tasksInQueue.push(value.tasksInQueue)
                     oneMin.push(value.loadAverage.oneMin)
                     fiveMin.push(value.loadAverage.fiveMin)
                     fifteenMin.push(value.loadAverage.fifteenMin)
                     free.push(value.memory.free)
 
-                    state.statistics.set(peer, {
+                    state.statistics[peer] = {
                         timestamp,
                         tasksInQueue,
                         loadAverage: {
                             oneMin,
                             fiveMin,
-                            fifteenMin
+                            fifteenMin,
                         },
                         memory: {
                             free
                         },
-                    })
+                    }
 
                     continue
                 }
+
+                existingData.timestamp = existingData.timestamp.slice()
+                existingData.tasksInQueue = existingData.tasksInQueue.slice()
+                existingData.loadAverage.oneMin = existingData.loadAverage.oneMin.slice()
+                existingData.loadAverage.fiveMin = existingData.loadAverage.fiveMin.slice()
+                existingData.loadAverage.fifteenMin = existingData.loadAverage.fifteenMin.slice()
+                existingData.memory.free = existingData.memory.free.slice()
 
                 if (existingData.timestamp.length > 100) {
                     existingData.timestamp.shift()
@@ -93,19 +102,19 @@ export const balancersSlice = createSlice({
                     existingData.memory.free.shift()
                 }
 
-                existingData.timestamp.push(Date.now())
+                existingData.timestamp.push(new Date().toLocaleDateString())
                 existingData.tasksInQueue.push(value.tasksInQueue)
                 existingData.loadAverage.oneMin.push(value.loadAverage.oneMin)
                 existingData.loadAverage.fiveMin.push(value.loadAverage.fiveMin)
                 existingData.loadAverage.fifteenMin.push(value.loadAverage.fifteenMin)
                 existingData.memory.free.push(value.memory.free)
 
-                state.statistics.set(peer, existingData)
+                state.statistics[peer] = existingData
             }
-        }
+        },
     },
     extraReducers(builder) {
-        builder.addCase(verifyAndSetRootBalancer.pending, (state, action) => {
+        builder.addCase(verifyAndSetRootBalancer.pending, (state) => {
             state.fetching = true
         })
         builder.addCase(verifyAndSetRootBalancer.fulfilled, (state, action) => {
@@ -136,16 +145,26 @@ export const balancersSlice = createSlice({
         builder.addCase(startFetchingStatistics.rejected, (state) => {
             state.fetching = false
         })
+        builder.addCase(eraseRootLoadBalancer.fulfilled, (state) => {
+            state.fetching = false
+            state.rootBalancer = undefined
+            state.peers = []
+            state.statistics = {}
+
+            if (state.timer !== null) {
+                clearTimeout(state.timer)
+            }
+            
+            state.timer = null
+
+            localStorage.removeItem('reducers/balancers/rootBalancer')
+        })
     },
 })
-
-export type BalancersState = ReturnType<typeof balancersSlice.getInitialState>
-export type BalancersActions = typeof balancersSlice.actions
 
 export const getRootBalancer = balancersSlice.selectors.getRootBalancer
 export const getPeers = balancersSlice.selectors.getPeers
 export const getStatistics = balancersSlice.selectors.getStatistics
-
 export const stopFetchingStatistics = balancersSlice.actions.stopFetchingStatistics
 
 export const verifyAndSetRootBalancer = createAsyncThunk<
@@ -172,12 +191,14 @@ export const fetchPeers = createAsyncThunk<
 >('balancers/getPeers', async (_, thunkAPI) => {
     try {
         const state = thunkAPI.getState()
-    
+
         if (!state.balancers.rootBalancer) {
             return []
         }
-    
+
         const peers = await getPeersRequest(state.balancers.rootBalancer)
+        peers.unshift(state.balancers.rootBalancer)
+
         return peers
     } catch (error) {
         return thunkAPI.rejectWithValue(new Error(`Could not retrieve peers\n${(error as Error).message}`))
@@ -185,26 +206,42 @@ export const fetchPeers = createAsyncThunk<
 })
 
 export const startFetchingStatistics = createAsyncThunk<
-    NodeJS.Timeout,
+    NodeJS.Timeout | null,
     void,
     { state: RootState }
 >('balancers/getStatistics', async (_arg, thunkAPI) => {
     const state = thunkAPI.getState()
 
+    if (!state.balancers.rootBalancer) {
+        return null
+    }
+
     if (state.balancers.timer) {
         return state.balancers.timer
-    } 
+    }
 
-    const timer = setInterval(async () => {
-        const statistics = new Map<Peer, Statistics>()
-        
-        await Promise.all(state.balancers.peers.map(async peer => {
-            const result = await getStatisticsRequest(peer)
-            statistics.set(peer, result)
-        }))
-    
-        thunkAPI.dispatch(balancersSlice.actions.setPeerStatistics(statistics))
-    }, 5000)
+    const request = async () => {
+        const statistics: Record<string, Statistics> = {};
+
+        await Promise.all(state.balancers.peers.map(async (peer) => {
+            const result = await getStatisticsRequest(peer);
+            result.memory.free = result.memory.free / 1000000
+            statistics[JSON.stringify(peer)] = result
+        }));
+
+        thunkAPI.dispatch(balancersSlice.actions.setPeerStatistics(statistics));
+    };
+
+    const timer = setInterval(request, 10000)
+    await request()
 
     return timer
 })
+
+export const eraseRootLoadBalancer = createAsyncThunk<
+    void,
+    void,
+    {
+        state: RootState,
+    }
+>('balancers/eraseRootLoadBalancer', (_, thunkApi) => { })
