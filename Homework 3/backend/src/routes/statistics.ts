@@ -7,5 +7,5 @@ type Params = {
 }
 
 export const makeStatisticsRoutes = (params: Params) => {
-    params.server.get('/statistics', params.getStatisticsController.run)
+    params.server.get('/api/statistics', params.getStatisticsController.run)
 }

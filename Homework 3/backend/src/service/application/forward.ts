@@ -103,7 +103,7 @@ const pickBestPeer = (self: Self): Self['pickBestPeer'] => async () => {
 
     const peerStatistics = await Promise.all(peers.map(async (peer) => {
         try {
-            const response = await self.client.get<void, Statistics>(`http://${peer.host}:${peer.port}/statistics`, {}, {})
+            const response = await self.client.get<void, Statistics>(`http://${peer.host}:${peer.port}/api/statistics`, {}, {})
             return { peer, statistics: response.body }
         } catch {
             return { peer, statistics: null }

@@ -7,5 +7,5 @@ type Params = {
 }
 
 export const makePeersRoutes = (params: Params) => {
-    params.server.get('/peers', params.getPeersController.run)
+    params.server.get('/api/peers', params.getPeersController.run)
 }
