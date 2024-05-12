@@ -137,7 +137,7 @@ export const balancersSlice = createSlice({
             if (state.timer !== null) {
                 clearTimeout(state.timer)
             }
-            
+
             state.timer = null
 
             localStorage.removeItem('reducers/balancers/rootBalancer')
@@ -207,9 +207,11 @@ export const startFetchingStatistics = createAsyncThunk<
         const statistics: Record<string, Statistics> = {};
 
         await Promise.all(state.balancers.peers.map(async (peer) => {
-            const result = await getStatisticsRequest(peer);
-            result.memory.free = result.memory.free / 1000000
-            statistics[JSON.stringify(peer)] = result
+            try {
+                const result = await getStatisticsRequest(peer);
+                result.memory.free = result.memory.free / 1000000
+                statistics[JSON.stringify(peer)] = result
+            } catch { }
         }));
 
         thunkAPI.dispatch(balancersSlice.actions.setPeerStatistics(statistics));
