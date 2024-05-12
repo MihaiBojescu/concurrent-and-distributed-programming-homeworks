@@ -1,6 +1,6 @@
 import { FC, useEffect } from "react"
 import { NotificationType } from "../../reducer/notifications/types"
-import { H6 } from "../typography/h6"
+import { H5 } from "../typography/h5"
 import { P } from "../typography/p"
 import './notifications.css'
 import { Image } from "../image/image"
@@ -34,7 +34,7 @@ export const Notification: FC<Props> = ({ type, title, description, onClick }) =
 
     return (
         <div className={`notification notification-${type}`} onClick={onClick}>
-            <H6>{title} <Image id={"notification"} size="m" /></H6>
+            <H5>{title} <Image id={"notification"} size="m" /></H5>
             <P>{description}</P>
         </div>
     )
