@@ -9,6 +9,7 @@ type Params = {
     repository: PeersRepository
     self: Peer
     app: Peer
+    excludedHosts: string[]
 }
 
 type Self = {
@@ -17,6 +18,7 @@ type Self = {
     repository: PeersRepository
     self: Peer
     app: Peer
+    excludedHosts: string[]
 }
 
 export interface UpdatePeersService {
@@ -30,6 +32,7 @@ export const makeUpdatePeersService = (params: Params) => {
         repository: params.repository,
         self: params.self,
         app: params.app,
+        excludedHosts: params.excludedHosts,
     }
 
     return {
@@ -45,19 +48,20 @@ const run = (self: Self): UpdatePeersService['run'] => async () => {
             interfaces[entry]!.filter(iface => !iface.internal && iface.family === 'IPv4').map(iface => iface.address))
         .reduce((acc, interfaces) => acc.concat(interfaces))
 
-    const clients = await self.dnsClient.resolve4('application.local')
-    const trimmedClients = clients.filter((clientA, indexA) =>
+    const peers = await self.dnsClient.resolve4('application.local')
+    const trimmedPeers = peers.filter((clientA, indexA) =>
         !localAddresses.find(clientB => clientA === clientB) &&
-        !clients.find((clientB, indexB) => indexA < indexB && clientA === clientB) &&
+        !peers.find((clientB, indexB) => indexA < indexB && clientA === clientB) &&
         clientA !== self.self.host &&
-        clientA !== self.app.host
+        clientA !== self.app.host &&
+        !self.excludedHosts.find((clientB) => clientA === clientB)
     )
-    const mappedClients = trimmedClients.map<Peer>(client => ({
+    const mappedPeers = trimmedPeers.map<Peer>(client => ({
         host: client,
         port: self.self.port
     }))
 
-    await self.repository.set(mappedClients)
+    await self.repository.set(mappedPeers)
 
-    self.logger.debug('[Peers update service] Updated peers', { peers: trimmedClients })
+    self.logger.debug('[Peers update service] Updated peers', { peers: trimmedPeers })
 }

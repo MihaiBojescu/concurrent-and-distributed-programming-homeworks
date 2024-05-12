@@ -1,26 +1,27 @@
 import { tidyEnv } from "tidyenv"
 import { makeApplicationForwardingController } from "./controller/application/forward"
+import { makeGetPeersController } from "./controller/peers/get"
 import { makeGetStatisticsController } from "./controller/statistics/get"
 import { makeUpdatePeersCronJobs } from "./cron/peers"
+import { makeUpdateStatisticsCronJobs } from "./cron/statistics"
 import { makeAxiosClient } from "./drivers/axiosHttpClient/client"
 import { makeCronClient } from "./drivers/cronClient/client"
+import { makeDNSClient } from "./drivers/dnsClient/client"
 import { makeExpressClient } from "./drivers/expressHttpServer/client"
 import { makeInMemoryCacheClient } from "./drivers/inMemoryCache/client"
 import { makeTidyEnvClient } from "./drivers/tidyenvEnvironmentClient/client"
+import { stringArray } from "./drivers/tidyenvEnvironmentClient/extras"
+import { makeWinstonClient } from "./drivers/winstonLogger/client"
 import { makePeersRepository } from "./repository/peers"
 import { makeStatisticsRepository } from "./repository/statistics"
 import { makeApplicationForwardingRoutes } from "./routes/forward"
+import { makePeersRoutes } from "./routes/peers"
 import { makeStatisticsRoutes } from "./routes/statistics"
 import { makeApplicationForwardingService } from "./service/application/forward"
+import { makeGetPeersService } from "./service/peers/get"
+import { makeUpdatePeersService } from "./service/peers/update"
 import { makeGetStatisticsService } from "./service/statistics/get"
 import { makeUpdateStatisticsService } from "./service/statistics/update"
-import { makeUpdatePeersService } from "./service/peers/update"
-import { makeDNSClient } from "./drivers/dnsClient/client"
-import { makeWinstonClient } from "./drivers/winstonLogger/client"
-import { makeUpdateStatisticsCronJobs } from "./cron/statistics"
-import { makeGetPeersController } from "./controller/peers/get"
-import { makeGetPeersService } from "./service/peers/get"
-import { makePeersRoutes } from "./routes/peers"
 
 export const main = async () => {
     const env = makeTidyEnvClient({
@@ -32,8 +33,9 @@ export const main = async () => {
         APPLICATION_PORT: tidyEnv.num(),
         DNS_HOST: tidyEnv.str({ default: '127.0.0.1' }),
         DNS_PORT: tidyEnv.num({ default: 53 }),
+        EXCLUDED_HOSTS: stringArray({ default: [] }),
         PEERS_TO_ASK: tidyEnv.num({ default: 5 }),
-        LOG_LEVEL: tidyEnv.str({ default: 'info' })
+        LOG_LEVEL: tidyEnv.str({ default: 'info' }),
     })
     const logger = makeWinstonClient({ level: env.get().LOG_LEVEL })
     const cronClient = makeCronClient()
@@ -61,7 +63,7 @@ export const main = async () => {
         app: {
             host: env.get().APPLICATION_HOST,
             port: env.get().APPLICATION_PORT
-        }
+        },
     })
     const updateStatisticsService = makeUpdateStatisticsService({ logger, repository: statisticsRepository })
     const updatePeersService = makeUpdatePeersService({
@@ -75,7 +77,8 @@ export const main = async () => {
         app: {
             host: env.get().APPLICATION_HOST,
             port: env.get().APPLICATION_PORT
-        }
+        },
+        excludedHosts: env.get().EXCLUDED_HOSTS
     })
 
     const getStatisticsController = makeGetStatisticsController({ logger, service: getStatisticsService })
