@@ -52,7 +52,6 @@ const run = (self: Self): UpdatePeersService['run'] => async () => {
         clientA !== self.self.host &&
         clientA !== self.app.host
     )
-    console.log({ trimmedClients })
     const mappedClients = trimmedClients.map<Peer>(client => ({
         host: client,
         port: self.self.port

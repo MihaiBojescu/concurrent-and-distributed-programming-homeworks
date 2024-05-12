@@ -61,8 +61,6 @@ export const setSettings = createAsyncThunk<
         return arg
     }
 
-    console.log({ arg })
-
     switch (arg.theme) {
         case 'light':
             root.style.setProperty('--white-color', 'hsl(20, 20%, 100%');
