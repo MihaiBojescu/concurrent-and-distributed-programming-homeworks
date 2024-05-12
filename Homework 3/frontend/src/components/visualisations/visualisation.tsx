@@ -1,5 +1,5 @@
-import { FC, useMemo } from "react";
-import ReactApexChart from "react-apexcharts";
+import { FC } from "react";
+import { Line } from "react-chartjs-2";
 import { Image } from "../image/image";
 
 interface Props {
@@ -11,35 +11,34 @@ interface Props {
 }
 
 export const Visualisation: FC<Props> = ({ visualisationId, name, type, timestamps, data }) => {
-    const options = useMemo<ReactApexChart['props']['options']>(() => ({
-        chart: {
-            id: visualisationId
+    const options = {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'top' as const,
+            },
+            title: {
+                display: true,
+                text: name,
+            },
         },
-        xaxis: {
-            categories: timestamps,
-            tickAmount: 1,
-            labels: {
-                rotate: 0
-            }
-        }
-    }), [timestamps, visualisationId])
-
-    const series = useMemo<ReactApexChart['props']['series']>(() => [
-        {
-            name,
-            data
-        }
-    ], [data, name])
+    }
+    const chartData = {
+        labels: timestamps,
+        datasets: [
+            {
+                fill: true,
+                label: name,
+                data,
+                borderColor: 'rgb(53, 162, 235)',
+                backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            },
+        ],
+    }
 
     return (
         !data?.length
             ? <Image id="wind" size="xl" scaleFactor={5} />
-            : <ReactApexChart
-                type={(type as ReactApexChart['props']['type']) || 'area'}
-                options={options}
-                series={series}
-                height={384}
-                width={'100%'}
-            />
+            : <Line options={options} data={chartData} />
     )
 }

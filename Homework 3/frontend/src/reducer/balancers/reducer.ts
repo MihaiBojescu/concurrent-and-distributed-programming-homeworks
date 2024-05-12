@@ -86,14 +86,7 @@ export const balancersSlice = createSlice({
                     continue
                 }
 
-                existingData.timestamp = existingData.timestamp.slice()
-                existingData.tasksInQueue = existingData.tasksInQueue.slice()
-                existingData.loadAverage.oneMin = existingData.loadAverage.oneMin.slice()
-                existingData.loadAverage.fiveMin = existingData.loadAverage.fiveMin.slice()
-                existingData.loadAverage.fifteenMin = existingData.loadAverage.fifteenMin.slice()
-                existingData.memory.free = existingData.memory.free.slice()
-
-                if (existingData.timestamp.length > 100) {
+                if (existingData.timestamp.length > 99) {
                     existingData.timestamp.shift()
                     existingData.tasksInQueue.shift()
                     existingData.loadAverage.oneMin.shift()
@@ -232,7 +225,7 @@ export const startFetchingStatistics = createAsyncThunk<
         thunkAPI.dispatch(balancersSlice.actions.setPeerStatistics(statistics));
     };
 
-    const timer = setInterval(request, 10000)
+    const timer = setInterval(request, 500)
     await request()
 
     return timer
