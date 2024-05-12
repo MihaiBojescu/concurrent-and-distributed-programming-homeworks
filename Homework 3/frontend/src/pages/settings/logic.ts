@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAppDispatch } from "../../reducer/store"
 import { setSettings } from "../../reducer/settings/reducer"
+import { unwrapResult } from "@reduxjs/toolkit"
+import { addNotification } from "../../reducer/notifications/reducer"
 
 export const useSettingsPageLogic = () => {
     const navigate = useNavigate()
@@ -13,18 +15,31 @@ export const useSettingsPageLogic = () => {
 
     const isSubmitDisabled = !isFetchingIntervalValid
 
-    const onSubmit = useCallback(() => {
+    const onSubmit = useCallback(async () => {
         if (isSubmitDisabled) {
             return
         }
+        try {
+            unwrapResult(await dispatch(setSettings({
+                fetching: {
+                    interval: Number(fetchingInterval),
+                    instances: Number(fetchingInstances)
+                }
+            })))
 
-        dispatch(setSettings({
-            fetching: {
-                interval: Number(fetchingInterval),
-                instances: Number(fetchingInstances)
-            }
-        }))
-        navigate(-1)
+            dispatch(addNotification({
+                title: 'Settings saved',
+                description: 'Redirecting...',
+                type: 'positive'
+            }))
+            navigate(-1)
+        } catch (error) {
+            dispatch(addNotification({
+                title: 'Settings discarded',
+                description: (error as Error)?.message,
+                type: 'negative'
+            }))
+        }
     }, [fetchingInterval, fetchingInstances, isSubmitDisabled, navigate, dispatch])
 
     useEffect(() => {

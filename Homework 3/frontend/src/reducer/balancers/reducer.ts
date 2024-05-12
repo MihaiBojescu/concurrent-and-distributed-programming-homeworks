@@ -237,4 +237,4 @@ export const eraseRootLoadBalancer = createAsyncThunk<
     {
         state: RootState,
     }
->('balancers/eraseRootLoadBalancer', (_, thunkApi) => { })
+>('balancers/eraseRootLoadBalancer', (_, thunkAPI) => { })

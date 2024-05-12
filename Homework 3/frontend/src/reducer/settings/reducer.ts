@@ -1,4 +1,5 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { AppDispatch, RootState } from "../store";
 import { Settings } from "./types";
 
 export const settingsSlice = createSlice({
@@ -14,12 +15,21 @@ export const settingsSlice = createSlice({
             return state
         }
     },
-    reducers: {
-        setSettings(state, action: PayloadAction<Settings>) {
+    reducers: {},
+    extraReducers(builder) {
+        builder.addCase(setSettings.fulfilled, (state, action) => {
             state.fetching = action.payload.fetching
-        },
+        })
     }
 })
 
 export const getSettings = settingsSlice.selectors.getSettings
-export const setSettings = settingsSlice.actions.setSettings
+
+export const setSettings = createAsyncThunk<
+    Settings,
+    Settings,
+    {
+        dispatch: AppDispatch,
+        state: RootState
+    }
+>('settings/setSettings', (arg) => arg)
