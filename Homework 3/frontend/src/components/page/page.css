@@ -1,0 +1,16 @@
+.page {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: scroll;
+}
+
+.page > *:only-child {
+    margin: 0 auto;
+}
+
+.page-centered {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}

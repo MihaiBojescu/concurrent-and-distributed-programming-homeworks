@@ -1,0 +1,25 @@
+.image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-xs {
+    height: calc(var(--xs-size) * 4);
+}
+
+.image-s {
+    height: calc(var(--s-size) * 4);
+}
+
+.image-m {
+    height: calc(var(--m-size) * 4);
+}
+
+.image-l {
+    height: calc(var(--l-size) * 4);
+}
+
+.image-xl {
+    height: calc(var(--xl-size) * 4);
+}
