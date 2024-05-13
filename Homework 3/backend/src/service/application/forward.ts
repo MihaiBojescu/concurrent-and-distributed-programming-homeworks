@@ -54,12 +54,12 @@ const run = (self: Self): ApplicationForwardingService['run'] => async <RequestH
     let willExecuteLocally = false
 
     try {
-        if ('X-Was-Triaged' in req.headers && req.headers['X-Was-Triaged'] === 'true') {
-            self.logger.info(`[Application forward service] Request was previously before, executing locally`)
+        if ('x-was-triaged' in req.headers && req.headers['x-was-triaged'] === 'true') {
+            self.logger.info(`[Application forward service] Request was previously triaged, executing locally`)
             willExecuteLocally = true
 
             await self.statisticsRepository.incrementTasks()
-            delete req.headers['X-Was-Triaged']
+            delete req.headers['x-was-triaged']
             const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${self.app.host}:${self.app.port}${req.path}`, req.headers, req.query, req.body)
 
             return response
@@ -72,7 +72,7 @@ const run = (self: Self): ApplicationForwardingService['run'] => async <RequestH
             self.logger.info(`[Application forward service] Best peer is self, executing locally`)
 
             await self.statisticsRepository.incrementTasks()
-            delete req.headers['X-Was-Triaged']
+            delete req.headers['x-was-triaged']
             const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${bestPeer.port}${req.path}`, req.headers, req.query, req.body)
 
             return response
@@ -80,7 +80,7 @@ const run = (self: Self): ApplicationForwardingService['run'] => async <RequestH
 
         self.logger.info(`[Application forward service] Best peer is not self, executing remotely on peer`, { peer: bestPeer })
 
-        const headers = { ...req.headers, 'X-Was-Triaged': 'true' }
+        const headers = { ...req.headers, 'x-was-triaged': 'true' }
         const response = await self.client[method]<ResponseHeaders, ResponseBody>(`http://${bestPeer.host}:${self.forwarder.port}${req.path}`, headers, req.query, req.body)
 
         return response
