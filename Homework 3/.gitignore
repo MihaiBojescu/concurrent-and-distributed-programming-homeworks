@@ -3,3 +3,10 @@ temp/
 node_modules/
 tsconfig.tsbuildinfo
 build/
+
+docs/docs.aux
+docs/docs.fdb_latexmk
+docs/docs.fls
+docs/docs.log
+docs/docs.pdf
+docs/docs.synctex.gz
