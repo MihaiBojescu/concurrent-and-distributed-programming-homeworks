@@ -7,7 +7,7 @@ export const main = () => {
     app.get('/instances', (req, res) => {
         console.log(`[${req.ip}:${req.socket.remotePort}] GET /instances`)
 
-        res.status(200).send(instances)
+        setTimeout(() => res.status(200).send(instances), 1000)
     })
 
     app.get('/instances/:instanceId', (req, res) => {
@@ -20,7 +20,7 @@ export const main = () => {
             return res.status(404).send()
         }
 
-        res.status(200).send(instance)
+        setTimeout(() => res.status(200).send(instance), 1000)
     })
 
     app.post('/instances', (req, res) => {
@@ -29,7 +29,7 @@ export const main = () => {
         const instance = { id: (instances[instances.length - 1] === undefined ? 0 : instances[instances.length - 1].id) + 1 }
         instances.push(instance)
 
-        res.status(201).send(instance)
+        setTimeout(() => res.status(201).send(instance), 1000)
     })
 
     app.delete('/instances/:instanceId', (req, res) => {
@@ -39,7 +39,7 @@ export const main = () => {
         const index = instances.findIndex(item => item.id === instanceId)
         instances.splice(index, 1)
 
-        res.status(204).send()
+        setTimeout(() => res.status(204).send(), 1000)
     })
 
     app.listen(3000, '0.0.0.0')
