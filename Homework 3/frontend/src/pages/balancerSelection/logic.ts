@@ -51,7 +51,7 @@ export const useLoadBalancerSelectionPageLogic = () => {
 
     const onClickOnClear = () => {
         setHost('127.0.0.1')
-        setPort('2024')
+        setPort('2025')
     }
 
     const onClickOnSettings = () => {
