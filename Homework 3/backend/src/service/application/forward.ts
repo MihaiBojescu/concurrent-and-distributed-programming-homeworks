@@ -85,51 +85,45 @@ const run = (self: Self): ApplicationForwardingService['run'] => async <RequestH
 
         return response
     } catch (error) {
-        const axiosError = error as AxiosError
+        const actualError = error as AxiosError | Error
 
-        if (axiosError.status === 502 || !axiosError.status || axiosError.code === 'ECONNRESET') {
+        if (!('isAxiosError' in actualError)) {
             self.logger.error(
-                'Bad gateway',
-                {
-                    baseUrl: axiosError.config?.baseURL,
-                    path: axiosError.config?.url,
-                    code: axiosError.code,
-                    statusCode: axiosError.status,
-                    name: axiosError.name,
-                    message: axiosError.message,
-                    stack: axiosError.stack
-                }
+                '[Application forward service] Internal server error',
+                error
+            )
+            throw new InternalServerError('Internal server error', { cause: error })
+        }
+
+        const processedError = {
+            baseUrl: actualError.config?.baseURL,
+            path: actualError.config?.url,
+            code: actualError.code,
+            statusCode: actualError.status,
+            name: actualError.name,
+            message: actualError.message,
+            stack: actualError.stack
+        }
+
+        if (actualError.status === 502 || !actualError.status || actualError.code === 'ECONNRESET') {
+            self.logger.error(
+                '[Application forward service] Bad gateway',
+                processedError
             )
             throw new BadGatewayError('Bad gateway', { cause: error })
         }
 
-        if (axiosError.status === 504 || axiosError.code === 'ECONNABORTED') {
+        if (actualError.status === 504 || actualError.code === 'ECONNABORTED') {
             self.logger.error(
-                'Gateway timeout',
-                {
-                    baseUrl: axiosError.config?.baseURL,
-                    path: axiosError.config?.url,
-                    code: axiosError.code,
-                    statusCode: axiosError.status,
-                    name: axiosError.name,
-                    message: axiosError.message,
-                    stack: axiosError.stack
-                }
+                '[Application forward service] Gateway timeout',
+                processedError
             )
             throw new GatewayTimeoutError('Gateway timeout', { cause: error })
         }
 
         self.logger.error(
-            'Internal server error',
-            {
-                baseUrl: axiosError.config?.baseURL,
-                path: axiosError.config?.url,
-                code: axiosError.code,
-                statusCode: axiosError.status,
-                name: axiosError.name,
-                message: axiosError.message,
-                stack: axiosError.stack
-            }
+            '[Application forward service] Internal server error',
+            processedError
         )
         throw new InternalServerError('Internal server error', { cause: error })
     } finally {
@@ -159,7 +153,26 @@ const pickBestPeer = (self: Self): Self['pickBestPeer'] => async () => {
         try {
             const response = await self.client.get<void, Statistics>(`http://${peer.host}:${peer.port}/api/statistics`, {}, {})
             return { peer, statistics: response.body }
-        } catch {
+        } catch (error) {
+            const actualError = error as AxiosError | Error
+            const processedError = {
+                ...peer,
+                ...(!('isAxiosError' in actualError) ? error as Error : {
+                    baseUrl: actualError.config?.baseURL,
+                    path: actualError.config?.url,
+                    code: actualError.code,
+                    statusCode: actualError.status,
+                    name: actualError.name,
+                    message: actualError.message,
+                    stack: actualError.stack
+                })
+            }
+
+            self.logger.error(
+                '[Application forward service] Peer did not respond with statistics',
+                processedError
+            )
+
             return { peer, statistics: null }
         }
     }))

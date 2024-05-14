@@ -41,27 +41,31 @@ export const makeUpdatePeersService = (params: Params) => {
 }
 
 const run = (self: Self): UpdatePeersService['run'] => async () => {
-    const interfaces = os.networkInterfaces();
-    const localAddresses = Object
-        .keys(interfaces)
-        .map(entry =>
-            interfaces[entry]!.filter(iface => !iface.internal && iface.family === 'IPv4').map(iface => iface.address))
-        .reduce((acc, interfaces) => acc.concat(interfaces))
-
-    const peers = await self.dnsClient.resolve4('application.local')
-    const trimmedPeers = peers.filter((clientA, indexA) =>
-        !localAddresses.find(clientB => clientA === clientB) &&
-        !peers.find((clientB, indexB) => indexA < indexB && clientA === clientB) &&
-        clientA !== self.self.host &&
-        clientA !== self.app.host &&
-        !self.excludedHosts.find((clientB) => clientA === clientB)
-    )
-    const mappedPeers = trimmedPeers.map<Peer>(client => ({
-        host: client,
-        port: self.self.port
-    }))
-
-    await self.repository.set(mappedPeers)
-
-    self.logger.debug('[Peers update service] Updated peers', { peers: trimmedPeers })
+    try {
+        const interfaces = os.networkInterfaces();
+        const localAddresses = Object
+            .keys(interfaces)
+            .map(entry =>
+                interfaces[entry]!.filter(iface => !iface.internal && iface.family === 'IPv4').map(iface => iface.address))
+            .reduce((acc, interfaces) => acc.concat(interfaces))
+    
+        const peers = await self.dnsClient.resolve4('application.local')
+        const trimmedPeers = peers.filter((clientA, indexA) =>
+            !localAddresses.find(clientB => clientA === clientB) &&
+            !peers.find((clientB, indexB) => indexA < indexB && clientA === clientB) &&
+            clientA !== self.self.host &&
+            clientA !== self.app.host &&
+            !self.excludedHosts.find((clientB) => clientA === clientB)
+        )
+        const mappedPeers = trimmedPeers.map<Peer>(client => ({
+            host: client,
+            port: self.self.port
+        }))
+    
+        await self.repository.set(mappedPeers)
+    
+        self.logger.debug('[Peers update service] Updated peers', { peers: trimmedPeers })
+    } catch (error) {
+        self.logger.error('[Peers update service] Failed updated peers', error)
+    }
 }
