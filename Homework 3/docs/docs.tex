@@ -14,6 +14,7 @@
 \usepackage[inkscapeformat=png]{svg}
 \usepackage[font=small,labelfont=bf]{caption}
 
+\graphicspath{ {./resources/} }
 \epstopdfDeclareGraphicsRule{.gif}{png}{.png}{convert gif:#1 png:\OutputFile}
 \AppendGraphicsExtensions{.gif}
 
@@ -30,18 +31,278 @@ bojescu.mihai@gmail.com}
 \maketitle
 
 \begin{abstract}
-    Lorem ipsum. To be completed.
+    This document details what is load balancing, what is the dynamic load balancing strategy in distributed systems,
+    possible architectures and challenges, case studies on Kubernetes and AWS ELB, and an experimental design created as a demonstration for the previously mentioned work.
 \end{abstract}
 
 \begin{IEEEkeywords}
-    Lorem ipsum. To be completed.
+    Load balancing, distributed systems, architectures, demonstration
 \end{IEEEkeywords}
 
 \section{Introduction}
-    Lorem ipsum. To be completed.
+    In distributed systems, load balancing is the act of distributing the workload across multiple nodes. Load balancing
+is performed in order to make greater use of the available resources (such as I/O devices, memory, CPU, data), increase efficiency
+of resources, lower response times, or to lower the costs of idle resources. Compared to simple load sharing, load balancing
+aims to roughly evenly distribute the workload on the available nodes, which is a desired global optima of the system.
+
+    Effective load balancing comes with many challenges, such as load estimation, load level comparison, system stability,
+efficient task transfer, efficient messaging between nodes, peer selection, and more.
+
+    Load balancing can be of two distinct types, based on the knowledge used to perform the balancing:
+
+    \begin{enumerate}
+        \item Static load balancing
+        \item Dynamic load balancing
+    \end{enumerate}
+
+    In the sections below, only the dynamic load balancing strategy will be detailed in full.
+
+\section{Static load balancing}
+    In static load balancing, prior knowledge about the compute nodes is required. Static load balancing is generally used
+in systems where the task size is known and is predictable. In such scenario, the topology of the system is well-known ahead
+of time, and ahead of the task execution. Tasks assigned to one node cannot be transferred to another one.
+In general, static load balancing is rigid, but less complex to implement.
+
+\subsection{Architectures and topologies}
+    Static load balancing mainly follows 2 architectures:
+
+    \begin{enumerate}
+        \item Explicit balancing, using a load balancer in front of nodes
+        \item Implicit balancing, using a DNS and exposed nodes
+    \end{enumerate}
+
+    The explicit balancing architecture aims to distribute traffic to nodes in a more controlled manner, giving
+control to the application to perform this action.
+
+    This presents multiple advantages:
+
+    \begin{enumerate}
+        \item Extracting the responsibility of traffic filtering away from the targeted application nodes
+        \item Implementation is more accessible
+        \item Multiple plug-and-play solutions already exist, such as NGINX, Apache, HAproxy
+    \end{enumerate}
+
+    And some disadvantages:
+
+    \begin{enumerate}
+        \item When the load balancer fails, the users don't have access to the application
+        \item When the load balancer gets overloaded, the users will experience high latency
+        \item The load balancer is an additional resource that needs to be managed
+        \item The overhead is higher, as the load balancer might not be next to the application server
+    \end{enumerate}
+    
+    \begin{center}
+        \vspace{1em}
+        \includegraphics[width=0.4\textwidth]{traditional-load-balancing.png}
+        \captionof{figure}{Explicit load balancing using a load balancer} \label{traditional-load-balancing}
+        \vspace{1em}
+    \end{center}
+
+    The load balancer can also be swapped for a message broker, achieving the same effect. The architecture is more complex,
+now relying on both a gateway and the message broker, but this allows for better availability.
+
+    \begin{center}
+        \vspace{1em}
+        \includegraphics[width=0.4\textwidth]{message-broker-balancing.png}
+        \captionof{figure}{Explicit load balancing using a message broker} \label{message-broker-load-balancing}
+        \vspace{1em}
+    \end{center}    
+
+    The implicit balancing architecture aims to pass the load balancing task from a load balancer to a DNS server,
+which will rotate addresses, in hopes of achieving even task distribution. This performs implicit load balancing, as the
+client can decide wether to use the provided host, or to use another one from the DNS server response, assuming the DNS
+server offers more than one response.
+
+    This presents multiple advantages:
+
+    \begin{enumerate}
+        \item The design is even simpler than figure \ref{traditional-load-balancing}, as no load balancer needs to be managed and
+        maintained
+        \item It can be simpler to implement than figure \ref{traditional-load-balancing} and figure \ref{message-broker-load-balancing}
+        \item The DNS control \textit{can be} outside of the application context (public DNS, for instance), which can reduce
+        costs
+    \end{enumerate}
+
+    Along with the disadvantages from figure \ref{traditional-load-balancing}, the architecture also has the following disadvantages:
+
+    \begin{enumerate}
+        \item In instances where the DNS is not owned by the application developer, the owner of the DNS server can perform
+        modifications without the developer's knowledge, leading to issues
+        \item The users might not know what DNS server to use to access the application
+    \end{enumerate}
+
+    \begin{center}
+        \vspace{1em}
+        \includegraphics[width=0.4\textwidth]{dns-load-balancing.png}
+        \captionof{figure}{Implicit load balancing using DNS} \label{dns-load-balancing}
+        \vspace{1em}
+    \end{center}
+
+\subsection{Algorithms}
+    In static load balancing, the following strategies are used:
+
+    \begin{enumerate}
+        \item Round-Robin method aims to evenly distribute tasks to each server,
+        without taking in consideration the load of the server
+        \item Random choice method aims to distribute tasks to different nodes, at random
+        \item Hashing method aims to hash the url, and pass the request to a node that matches the hash
+        \item Least connection method aims to send the request to the least full node that the node knows about,
+        without taking in consideration the load of the server
+        \item Weight distributed method aims to send the requests to based to a prior-set weighted node selection. 
+    \end{enumerate}
+
+    \begin{center}
+        \vspace{1em}
+        \includegraphics[width=0.5\textwidth]{round-robin-method.png}
+        \captionof{figure}{Round-Robin strategy} \label{round-robin-strategy}
+        \vspace{1em}
+    \end{center}
+
+    \begin{center}
+        \vspace{1em}
+        \includegraphics[width=0.5\textwidth]{random-method.png}
+        \captionof{figure}{Random strategy} \label{random-strategy}
+        \vspace{1em}
+    \end{center}
+
+\section{Dynamic load balancing}
+    In dynamic load balancing, no knowledge of the system and tasks is required or assumed a priori. Tasks are dynamically
+assigned, reassigned and distributed to the available nodes in the system without the prior input from the application developer.
+The strategy is highly flexible and provides high availability, with generally more performance compared to the static load
+balancing strategy. While the strategy has many advantages, it requires more resources, is prone to high chattiness, and
+is more complex overall. 
+
+    Various studies on dynamic load balancing, such as \cite{b1}, show that such strategy can increase the resource utilisation,
+lower response times, increase availability and reduce costs. 
+
+    Dynamic load balancing algorithms are varied, and an effective one must trade between the disadvantages listed above in
+order to achieve good performance of the system. They range from simple comparisons to advanced statistical analysis to achieve
+the desired system. Some well-known algorithms will be listed in the sections below, along with their use-cases.
+
+\subsection{Architectures and topologies}
+    Dynamic load balancing architectures don't overlap with static load balancing architectures in full, as the implicitly
+balanced architectures are not supported.
+    
+    \begin{enumerate}
+        \item For the static explicitly balanced architecture, the load balancer must take into account the load of each node before assigning tasks
+        \item For the static implicitly balanced architecture, the DNS server must account for individual node load. This effectively makes the
+        architecture an explictly balanced one.
+    \end{enumerate}
+
+    Along the two aforementioned architectures, the strategy allows for a decentralised one, supported by the task transfer
+option of the dynamic load balancing strategy and by individual node load balancing. The architecture allows nodes to be independently scaled,
+thus achieving higher resource utilisation efficiency.
+
+    \begin{center}
+        \vspace{1em}
+        \includegraphics[width=0.4\textwidth]{internally-load-balanced-node.png}
+        \captionof{figure}{Internal representation of decentralised, dynamic load balanced nodes} \label{internally-load-balanced-node}
+        \vspace{1em}
+    \end{center}
+
+    \begin{center}
+        \vspace{1em}
+        \includegraphics[width=0.4\textwidth]{decentralised-load-balanced-system.png}
+        \captionof{figure}{Decentralised, dynamically load-balanced system, using internally, dynamic load balanced nodes} \label{decentralised-load-balanced-system}
+        \vspace{1em}
+    \end{center}
+
+\subsection{Algorithms}
+    Dynamic load balancing are rather diverse, can take multiple parameters such as CPU load average, free memory, tasks in
+queue and response times.
+
+    Many algorithms are based on one of the following ones:
+
+    \begin{enumerate}
+        \item Least compute-loaded method
+        \item Least response time method
+        \item Least bandwidth used method
+        \item Least packets used method
+    \end{enumerate}
+
+    The algorithms try to achieve the same global optima in different ways, and should be used depending on the specific
+use-cases, some of them being:
+
+    \begin{enumerate}
+        \item Least compute-loaded method should be used for tasks such as video transcoding, AI workloads, CI/CD operations
+        \item Least response time method should be used for tasks such as video and audio calls, stock markets, online games
+        \item Least bandwidth used method should be used for tasks such as video streaming, cloud storage, CDNs
+        \item Least packets used method should be used for tasks such as chat applications, external load balancers for DDoS mitigation
+    \end{enumerate}
+
+    Each algorithm uses metrics from the available nodes to perform load balancing effectively. Depending on the system, the
+metrics can be pushed to the balancer, or pulled by it. Systems that use the push method tend to be
+most chatty and have the least latency, while the pulling ones have ones are the polar opposite.
+
+\section{Case studies}
+
+\subsection{Case studies: Kubernetes}
+    Kubernetes is a well-known platform for building highly-available, highly-scalable and platform-agnostic web applications.
+It uses
+
+\subsection{Case study: AWS ELB}
+
+\section{Experimental study: Building a decentralised, dynamically load balanced system}
+    In this section, an experimental study will be detailed on building a decentralised, dynamically load balanced system
+from start to finish. The system includes the following components:
+
+    \begin{enumerate}
+        \item A load balancer process
+        \item A frontend application used to view the metrics of the node, which are used by the load balancer
+        to perform the task placement
+    \end{enumerate}
+
+    The load balancer process polls a DNS server for peer nodes each second, which will be later used for passing tasks
+when the node is compute-overloaded.
+
+    For the balancing algorithm, a ``least compute-loaded method'' was applied. When a HTTP request is received by the
+balancer, it queries at most $n$ nodes (configurable) for their metrics, and picks which has the most compute power available.
+
+    Architecturally, the system is the same as figure \ref{decentralised-load-balanced-system}, where each node in the system
+follows figure \ref{internally-load-balanced-node} for its components. The system was initially thought to work for containerised
+applications using Docker.
+
+\subsection{Tests}
+
+    From tests, the system could achieve about even task distribution when tested on the same machine using the Apache ``ab''
+HTTP API stress testing utility with 20000 requests and 2000 concurrent requests.
+
+    \begin{center}
+        \centering
+        \begin{tabular}{l|r|r|r}
+            Metric & Min & Mean & Max \\
+            \hline
+            Latency & & & \\
+            \hline
+            CPU load average & & & \\
+            \hline
+            Free memory & & & \\
+        \end{tabular}
+        \captionof{table}{Same machine metrics for the experimental study} \label{experimental-study-metrics-same-machine}
+    \end{center}
+
+    When using three heterogenous machines - a laptop with an Intel Core i7 1260p processor, and a Raspberry Pi 4 SBC, and a smartphone
+with a Qualcomm Snapdragon 8 gen 3 processor - the results were:
+
+    \begin{center}
+        \centering
+        \begin{tabular}{l|r|r|r}
+            Metric & Min & Mean & Max \\
+            \hline
+            Latency & & & \\
+            \hline
+            CPU load average & & & \\
+            \hline
+            Free memory & & & \\
+        \end{tabular}
+        \captionof{table}{Different machines metrics for the experimental study} \label{experimental-study-metrics-different-machines}
+    \end{center}
 
 \begin{thebibliography}{00}
-    \bibitem{b1} Romans (0 B.C.). ``Lorem Ipsum''. Ancient tablet of Rome.
+    \bibitem{b1} Z. Khan, R. Singh, J. Alam, and R. Kumar, "Performance Analysis
+    of Dynamic Load Balancing Techniques for Parallel and Distributed
+    Systems," International Journal of Computer and Network Security,
+    vol. 2, no. 2, February 2010.
 \end{thebibliography}
 
 \end{document}
