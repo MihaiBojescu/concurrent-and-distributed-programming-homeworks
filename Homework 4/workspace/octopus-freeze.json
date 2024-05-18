@@ -32,7 +32,32 @@
             ]
         }
     ],
+    "patch": [
+        {
+            "name": "trust-loader-config",
+            "actions": [
+                {
+                    "type": "copy",
+                    "src": "./trust-loader-config",
+                    "target": "./apihub-root",
+                    "options": {
+                        "overwrite": true,
+                        "ignoreErrors": true
+                    }
+                }
+            ]
+        }
+    ],
     "postinstall": [
+        {
+            "name": "trust-loader-config",
+            "actions": [
+                {
+                    "type": "execute",
+                    "cmd": "node ./node_modules/octopus/scripts/setEnv --file=../../../env.json \"node ./bin/octopusRun.js patch\""
+                }
+            ]
+        },
         {
             "name": "copy-bundles",
             "actions": [
