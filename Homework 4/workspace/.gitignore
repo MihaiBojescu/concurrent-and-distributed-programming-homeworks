@@ -3,6 +3,7 @@ opendsu-sdk
 node_modules
 package-lock.json
 env.json.devel
+apihub-root/external-volume
 apihub-root/internal-volume/domains
 apihub-root/external-volume/domains
 apihub-root/external-volume/wallets
