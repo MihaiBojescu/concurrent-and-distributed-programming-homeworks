@@ -1,0 +1,10 @@
+{
+  "menu-items": [
+    {
+      "href": "frontend/loader/",
+      "background_color": "#8782E1",
+      "icon": "fa-solid fa-credit-card fa-4x",
+      "label": "Card organiser"
+    }
+  ]
+}
