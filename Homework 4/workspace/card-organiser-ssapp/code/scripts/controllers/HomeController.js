@@ -1,3 +1,5 @@
+import { cardsRepositoryInstance } from "../repository/CardsRepository.js";
+
 const { Controller } = WebCardinal.controllers;
 
 export default class HomeController extends Controller {
@@ -5,7 +7,15 @@ export default class HomeController extends Controller {
         super(...props);
 
         this.model = {
-            name: "Card organiser"
+            state: 'loading'
         }
+
+        this.cardsRepository = cardsRepositoryInstance.get()
+        this.cardsRepository.then(() => {
+            this.model.state = 'loaded'
+        }).catch((err) => {
+            console.log(err)
+            this.model.state = 'error'
+        })
     }
 }
