@@ -2,8 +2,8 @@ let LOADER_GLOBALS = {
 	THEME: "app",
 	SHOW_ACTION_BUTTON: false,
 	LABELS_DICTIONARY: {
-		APP_NAME: "TUTORIAL",
-		APP_DESCRIPTION: "Just a simple tutorial",
+		APP_NAME: "Card organiser",
+		APP_DESCRIPTION: "A card organising application",
 		NEW_WALLET: "New Account",
 		ACCESS_WALLET: "Access Account",
 		WALLET_AUTHORIZATION: "Authorization",

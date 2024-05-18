@@ -1,5 +1,5 @@
 export default{
-  "appName": "DemoSSApp",
+  "appName": "CardOrganiser",
   "vault": "server",
   "agent": "browser",
   "system":   "any",
