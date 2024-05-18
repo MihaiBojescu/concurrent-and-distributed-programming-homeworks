@@ -1,0 +1,8 @@
+/node_modules
+/.idea
+loader-config.local.json
+/bundles
+/swBoot.js
+/config-constants.js
+/environment.js
+package-lock.json

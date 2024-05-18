@@ -1,0 +1,20 @@
+{
+  "workDir": ".",
+  "dependencies": [
+    {
+      "name": "PSK bundles",
+      "src": "",
+      "actions": [
+        {
+          "type": "copy",
+          "src": "../../../opendsu-sdk/builds/output/loaderBoot.js",
+          "target": "./bundles/loaderBoot.js",
+          "options": {
+            "overwrite": true
+          }
+        }
+      ]
+    }
+  ],
+  "build": []
+}
