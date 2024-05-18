@@ -1,4 +1,4 @@
-{ 
+{
     "workDir": ".",
     "dependencies": [
         {
@@ -28,6 +28,21 @@
                 {
                     "type": "execute",
                     "cmd": "cd opendsu-sdk && npm install"
+                }
+            ]
+        },
+        {
+            "name": "apihub-root/card-organiser-wallet/loader",
+            "src": "https://github.com/OpenDSU/trust-loader",
+            "actions": [
+                {
+                    "type": "smartClone",
+                    "target": ".",
+                    "collectLog": false
+                },
+                {
+                    "type": "execute",
+                    "cmd": "cd apihub-root/card-organiser-wallet/loader && npm install"
                 }
             ]
         }
@@ -88,6 +103,24 @@
                 {
                     "type": "execute",
                     "cmd": "node ./node_modules/octopus/scripts/setEnv --file=../../../env.json \"node ./bin/octopusRun.js postbuild\""
+                }
+            ]
+        },
+        {
+            "name": "card-organiser-wallet_bind_to_card-organiser-ssapp",
+            "src": "",
+            "actions": [
+                {
+                    "type": "execute",
+                    "cmd": "cd card-organiser-ssapp && npm run build"
+                },
+                {
+                    "type": "copy",
+                    "src": "./card-organiser-ssapp/seed",
+                    "target": "./apihub-root/card-organiser-wallet/wallet-patch/seed",
+                    "options": {
+                        "overwrite": true
+                    }
                 }
             ]
         }

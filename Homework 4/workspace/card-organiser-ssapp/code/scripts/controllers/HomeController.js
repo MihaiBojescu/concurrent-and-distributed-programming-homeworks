@@ -1,6 +1,6 @@
 const { Controller } = WebCardinal.controllers;
 
-export default class ExampleController extends Controller {
+export default class HomeController extends Controller {
     constructor(...props) {
         super(...props);
 
