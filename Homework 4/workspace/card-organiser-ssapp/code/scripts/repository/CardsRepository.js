@@ -11,19 +11,44 @@ class CardsRepository {
     }
 
     async getAll() {
-        return this.#enclave.getAllRecordsAsync('cards')
+        try {
+            const result = await this.#enclave.getAllRecordsAsync('cards')
+            return result.map((card) => ({
+                id: card.id,
+                name: card.name,
+                brand: card.brand,
+                serial: card.serial
+            }))
+        } catch { }
+
+        return []
     }
 
     async addCard(name, brand, serial) {
-        const existing = await this.#enclave.getRecordAsync('cards', brand)
+        let id = crypto.randomUUID()
+        try {
+            while (await this.#enclave.getRecordAsync('cards', id)) {
+                id = crypto.randomUUID()
+            }
+        } catch { }
 
-        if (!existing) {
-            return await this.#enclave.insertRecordAsync('cards', brand, [{ name, serial }])
-        }
+        const batchId = await this.#enclave.safeBeginBatchAsync()
+        await this.#enclave.insertRecordAsync('cards', id, { id, brand, name, serial })
+        await this.#enclave.commitBatchAsync(batchId)
 
-        existing.push({ name, serial })
+        return { id, name, brand, serial }
+    }
 
-        return await this.#enclave.updateRecordAsync('cards', brand, [{ name, serial }])
+    async removeCard(id) {
+        const batchId = await this.#enclave.safeBeginBatchAsync()
+
+        try {
+            await this.#enclave.deleteRecordAsync('cards', id)
+        } catch { }
+
+        await this.#enclave.commitBatchAsync(batchId)
+
+        return
     }
 }
 
