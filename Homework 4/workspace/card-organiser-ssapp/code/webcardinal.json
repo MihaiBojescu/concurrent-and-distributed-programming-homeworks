@@ -1,9 +1,15 @@
 {
   "pagesFallback": {
-    "name": "home",
-    "src": "./home.html"
+    "name": "not-found",
+    "src": "./not-found.html"
   },
   "pages": [
+    {
+      "name": "not-found",
+      "tag": "not-found",
+      "src": "./not-found.html",
+      "path": "/not-found"
+    },
     {
       "name": "Home",
       "tag": "home",
