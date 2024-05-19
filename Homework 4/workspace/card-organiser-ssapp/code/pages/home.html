@@ -1,21 +1,19 @@
+<link rel="stylesheet" href="assets/css/main.css" />
+
 <webc-container controller="HomeController" class="homepage">
-    <p>Page state: {{ @state }}</p>
-    <ul data-for="@cards">
-        <li>[{{ @id }}] Card from brand {{ @brand}} with name {{ @name }} and serial {{ @serial }}</li>
-    </ul>
-    <div>
-        <div>
-            <label for="name">Name</label>
-            <input id="name" data-for="@name" />
+    <div class="cards-list" data-for="@cards">
+        <div class="card-item" id="@id">
+            <img alt="@brand" src="@image" />
+            <div class="card-item-details">
+                <h1>{{ @name }}</h1>
+                <p>Name: {{ @brand }}</p>
+            </div>
+            <div class="cover" data-tag="view-card"></div>
         </div>
-        <div>
-            <label for="brand">Brand</label>
-            <input id="brand" data-for="@brand" />
-        </div>
-        <div>
-            <label for="serial">Serial</label>
-            <input id="serial" data-for="@serial" />
-        </div>
-        <button data-tag="add-card">Insert card</button>
+    </div>
+    <div class="add-card-button">
+        <img src="assets/images/plus.svg" alt="Add card">
+        <h3>Add card</h3>
+        <div class="cover" data-tag="add-card"></div>
     </div>
 </webc-container>

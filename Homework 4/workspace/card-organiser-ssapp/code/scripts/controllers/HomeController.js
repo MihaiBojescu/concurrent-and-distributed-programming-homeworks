@@ -9,7 +9,8 @@ export default class HomeController extends Controller {
         super(...props);
 
         this.model = {
-            state: 'loading'
+            state: 'loading',
+            cards: []
         }
 
         this.#cardsRepository = cardsRepositoryInstance.get()
@@ -27,8 +28,9 @@ export default class HomeController extends Controller {
             return
         }
 
-        this.onTagClick('add-card', this.onAddCard.bind(this))
         this.#cardsRepository = await this.#cardsRepository
+        this.onTagClick('add-card', this.onAddCard.bind(this))
+        this.onTagClick('view-card', this.onViewCard.bind(this))
         this.model.state = 'loaded'
 
         await this.reloadCards()
@@ -36,17 +38,24 @@ export default class HomeController extends Controller {
 
     async onAddCard(model, target, event) {
         event.stopImmediatePropagation()
+        this.navigateToPageTag('add-card')
+    }
+
+    async onViewCard(model, target, event) {
+        event.stopImmediatePropagation()
 
         if (this.model.state !== 'loaded') {
             return
         }
 
-        const name = document.querySelector('#name').value
-        const brand = document.querySelector('#brand').value
-        const serial = document.querySelector('#serial').value
+        const cardId = target.parentElement.id
+        const card = this.model.cards.find(card => card.id === cardId)
 
-        await this.#cardsRepository.addCard(name, brand, serial)
-        await this.reloadCards()
+        if (!card) {
+            return
+        }
+
+        this.navigateToPageTag('card', { card })
     }
 
     async reloadCards() {
