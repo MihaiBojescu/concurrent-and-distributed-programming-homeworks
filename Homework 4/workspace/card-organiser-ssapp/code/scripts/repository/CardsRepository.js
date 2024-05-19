@@ -2,6 +2,10 @@ import { SingletonFactory } from "../utils/SingletonFactory.js"
 
 const opendsu = require('opendsu')
 
+const unknownImage = 'assets/images/unknown.png'
+const images = {
+    'auchan': 'assets/images/auchan.png'
+}
 
 class CardsRepository {
     #enclave = void 0
@@ -17,6 +21,7 @@ class CardsRepository {
                 id: card.id,
                 name: card.name,
                 brand: card.brand,
+                image: this.#getImage(brand),
                 serial: card.serial
             }))
         } catch { }
@@ -36,7 +41,7 @@ class CardsRepository {
         await this.#enclave.insertRecordAsync('cards', id, { id, brand, name, serial })
         await this.#enclave.commitBatchAsync(batchId)
 
-        return { id, name, brand, serial }
+        return { id, name, brand, image: this.#getImage(brand), serial }
     }
 
     async removeCard(id) {
@@ -49,6 +54,10 @@ class CardsRepository {
         await this.#enclave.commitBatchAsync(batchId)
 
         return
+    }
+
+    #getImage(brand) {
+        return images[brand] || unknownImage
     }
 }
 
