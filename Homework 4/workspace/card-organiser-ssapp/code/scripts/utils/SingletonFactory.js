@@ -3,7 +3,6 @@ export class SingletonFactory {
     #callback = void 0
 
     constructor(callback) {
-        this.#instance = void 0
         this.#callback = callback
     }
 
