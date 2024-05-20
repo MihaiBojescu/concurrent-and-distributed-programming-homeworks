@@ -1,4 +1,4 @@
-import { brands } from '../data/brands.js'
+import { brands, brandsByTitle } from '../data/brands.js'
 
 const { navigateToPageTag } = WebCardinal.preload;
 const { Controller } = WebCardinal.controllers;
@@ -17,7 +17,7 @@ export default class SelectCardBrandController extends Controller {
     }
 
     async #onSelectCardBrand(model, target, event) {
-        this.model.brand = target.children[1].innerText
+        this.model.brand = brandsByTitle[target.children[1].innerText].value
         navigateToPageTag('scan-card', { card: { brand: this.model.brand.toString() } })
 
     }

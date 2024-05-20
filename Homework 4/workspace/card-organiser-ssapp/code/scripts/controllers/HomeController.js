@@ -13,7 +13,6 @@ export default class HomeController extends Controller {
             state: 'loading',
             cards: []
         }
-        this.model.cards.push({ "id": "d7b0c2c0-2034-4c7e-8ffe-c3110390a6c2", "brand": "auchan", "description": "", "image": "assets/images/auchan.svg", "serial": "9999000690896" })
 
         this.#cardsRepository = cardsRepositoryInstance.get()
         this.#cardsRepository

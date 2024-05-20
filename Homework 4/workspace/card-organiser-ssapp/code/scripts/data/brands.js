@@ -4,9 +4,13 @@ export const brands = [
         "value": "unknown",
         "image": "assets/images/question.svg"
     },
-    {
-        "name": "Auchan",
-        "value": "auchan",
-        "image": "assets/images/auchan.svg"
-    }
-]
+
+export const brandsByValue = brands.reduce((acc, entry) => {
+    acc[entry.value] = entry
+    return acc
+}, {})
+
+export const brandsByTitle = brands.reduce((acc, entry) => {
+    acc[entry.name] = entry
+    return acc
+}, {})

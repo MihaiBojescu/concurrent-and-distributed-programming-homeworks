@@ -3,11 +3,11 @@
 <link rel="stylesheet" href="assets/css/input.css" />
 
 <webc-container controller="HomeController" class="homepage">
-    <div class="card-list" data-for="@cards">
+    <div data-for="@cards" class="card-list">
         <div class="card-item" id="@id">
             <img alt="@brand" src="@image" />
             <div class="card-item-details">
-                <h1>{{ @brand }}</h1>
+                <h1>{{ @title }}</h1>
                 <p>{{ @description }}</p>
             </div>
             <div class="cover" data-tag="view-card"></div>

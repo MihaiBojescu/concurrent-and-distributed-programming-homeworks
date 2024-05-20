@@ -1,13 +1,7 @@
 import { SingletonFactory } from "../utils/SingletonFactory.js"
-import { brands } from '../data/brands.js'
+import { brandsByValue } from '../data/brands.js'
 
 const opendsu = require('opendsu')
-
-const unknownImage = brands.find(entry => entry.value === 'unknown')
-const images = brands.reduce((acc, entry) => {
-    acc[entry.value] = entry.image
-    return acc
-}, {})
 
 class CardsRepository {
     #enclave = void 0
@@ -19,21 +13,14 @@ class CardsRepository {
     async getAll() {
         try {
             const result = await this.#enclave.getAllRecordsAsync('cards')
-            return result.map((card) => ({
-                id: card.id,
-                brand: card.brand,
-                description: card.description,
-                type: card.type,
-                image: card.image,
-                serial: card.serial
-            }))
+            return result.map((card) => this.#mapToRecord(card))
         } catch { }
 
         return []
     }
 
     async addCard(brand, description, type, serial) {
-    let id = crypto.randomUUID()
+        let id = crypto.randomUUID()
         try {
             while (await this.#enclave.getRecordAsync('cards', id)) {
                 id = crypto.randomUUID()
@@ -45,15 +32,17 @@ class CardsRepository {
             brand,
             description,
             type,
-            image: this.#getImage(brand),
             serial
         }
 
         const batchId = await this.#enclave.safeBeginBatchAsync()
-        await this.#enclave.insertRecordAsync('cards', id, card)
-        await this.#enclave.commitBatchAsync(batchId)
+        try {
+            await this.#enclave.insertRecordAsync('cards', id, card)
+        } finally {
+            await this.#enclave.commitBatchAsync(batchId)
+        }
 
-        return card
+        return this.#mapToRecord(card)
     }
 
     async removeCard(id) {
@@ -61,15 +50,23 @@ class CardsRepository {
 
         try {
             await this.#enclave.deleteRecordAsync('cards', id)
-        } catch { }
-
-        await this.#enclave.commitBatchAsync(batchId)
+        } finally { 
+            await this.#enclave.commitBatchAsync(batchId)
+        }
 
         return
     }
 
-    #getImage(brand) {
-        return images[brand] || unknownImage
+    #mapToRecord(card) {
+        return {
+            id: card.id,
+            brand: card.brand,
+            title: brandsByValue[card.brand],
+            description: card.description,
+            type: card.type,
+            image: brandsByValue[card.brand]?.image || brandsByValue['unknown'].image,
+            serial: card.serial
+        }
     }
 }
 
