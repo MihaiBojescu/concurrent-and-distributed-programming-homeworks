@@ -56,7 +56,7 @@ export default class HomeController extends Controller {
             return
         }
 
-        navigateToPageTag('view-card', { card: { ...card } })
+        navigateToPageTag('view-card', { card: JSON.parse(JSON.stringify(card)) })
     }
 
     async #reloadCards() {

@@ -3,32 +3,20 @@
 <link rel="stylesheet" href="assets/css/input.css" />
 
 <webc-container controller="ViewCardController" class="homepage">
-    <div class="cards-list" data-for="@cards">
-        <div class="card-item" id="{{ @id }}">
-            <img alt="{{ @brand }}" src="{{ @image }}" />
-            <div class="card-item-details">
-                <h1>{{ @name }}</h1>
-                <p>Name: {{ @brand }}</p>
+    <div class="header">
+        <div class="header-left">
+            <div class="header-action-slot">
+                <button data-tag="go-back" class="button">
+                    <img src="assets/images/back.svg" alt="Go back">
+                </button>
             </div>
-            <div class="cover" data-tag="view-card"></div>
         </div>
-    </div>
-    <ul data-for="@cards">
-        <li>[{{ @id }}] Card from brand {{ @brand }} with name {{ @name }} and serial {{ @serial }}</li>
-    </ul>
-    <div>
-        <div>
-            <label for="name">Name</label>
-            <input type="text" id="name" />
+        <div class="header-right">
+            <div class="header-action-slot">
+                <button data-tag="delete-card" class="button">
+                    <img src="assets/images/trash.svg" alt="Delete card">
+                </button>
+            </div>
         </div>
-        <div>
-            <label for="brand">Brand</label>
-            <input type="text" id="brand" />
-        </div>
-        <div>
-            <label for="serial">Serial</label>
-            <input type="text" id="serial" />
-        </div>
-        <button data-tag="add-card" class="button">Insert card</button>
     </div>
 </webc-container>

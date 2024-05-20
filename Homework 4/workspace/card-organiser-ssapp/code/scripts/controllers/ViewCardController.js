@@ -1,5 +1,6 @@
 import { cardsRepositoryInstance } from "../repository/CardsRepository.js";
 
+const { navigateToPageTag } = WebCardinal.preload;
 const { Controller } = WebCardinal.controllers;
 
 export default class AddCardController extends Controller {
@@ -10,15 +11,17 @@ export default class AddCardController extends Controller {
 
         this.model = {
             state: 'loading',
-            cards: []
+            card: { ...window.history.state.state.card }
         }
 
         this.#cardsRepository = cardsRepositoryInstance.get()
         this.#cardsRepository
-            .then(() => document.dispatchEvent(new CustomEvent('add-card-controller-loaded', { detail: { error: null } })))
-            .catch((error) => document.dispatchEvent(new CustomEvent('add-card-controller-loaded', { detail: { error } })))
+            .then(() => document.dispatchEvent(new CustomEvent('view-card-controller-loaded', { detail: { error: null } })))
+            .catch((error) => document.dispatchEvent(new CustomEvent('view-card-controller-loaded', { detail: { error } })))
 
-        document.addEventListener('add-card-controller-loaded', this.#onInit.bind(this))
+        document.addEventListener('view-card-controller-loaded', this.#onInit.bind(this))
+        this.onTagClick('delete-card', this.#onRemoveCard.bind(this))
+        this.onTagClick('go-back', this.#onGoBack.bind(this))
     }
 
     async #onInit(event) {
@@ -30,11 +33,17 @@ export default class AddCardController extends Controller {
 
         this.#cardsRepository = await this.#cardsRepository
         this.model.state = 'loaded'
-        this.onTagClick('go-back', this.#onGoBack.bind(this))
+    }
+
+    async #onRemoveCard(model, target, event) {
+        event.stopImmediatePropagation()
+
+        await this.#cardsRepository.removeCard(this.model.card.id)
+        navigateToPageTag('home')
     }
 
     async #onGoBack(model, target, event) {
         event.stopImmediatePropagation()
-        this.navigateToPageTag('home')
+        navigateToPageTag('home')
     }
 }
