@@ -30,7 +30,8 @@
 
 .card-list {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     padding: calc(var(--xl-size) * 2);
     gap: var(--xl-size);
 }
@@ -52,6 +53,7 @@
 
 .card-item .card-item-details {
     flex: 1;
+    padding: var(--m-size);
 }
 
 .card-item .card-item-details h1,
