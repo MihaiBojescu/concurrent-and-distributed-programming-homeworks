@@ -14,14 +14,14 @@
     gap: var(--m-size);
 
     background: var(--white-color);
-    box-shadow: var(--xs-shadow) var(--light-color);
+    box-shadow: var(--s-shadow) var(--normal-color);
 
     z-index: 1;
 }
 
 .header-dark {
     background: var(--black-color);
-    box-shadow: var(--xs-shadow) var(--dark-color);
+    box-shadow: var(--s-shadow) var(--dark-color);
 }
 
 .header-left {
