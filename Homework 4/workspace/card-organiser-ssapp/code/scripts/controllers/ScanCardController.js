@@ -11,6 +11,7 @@ export default class ScanCardController extends Controller {
         super(...props);
 
         this.model = {
+            brand: window.history.state.state.card.brand.toString(),
             type: '',
             serial: '',
         }
@@ -44,13 +45,12 @@ export default class ScanCardController extends Controller {
     }
 
     async #onScanSuccess(decodedText, decodedResult) {
-        this.model.scannerVisible = false
         this.model.serial = decodedText
         this.model.type = decodedResult.result.format.formatName
 
         try {
             await this.#cardsRepository.addCard(
-                window.history.state.state.card.brand,
+                this.model.brand,
                 '',
                 this.model.type,
                 this.model.serial
@@ -60,10 +60,10 @@ export default class ScanCardController extends Controller {
         }
     }
 
-    async #onScanFailed(error) {
+    #onScanFailed(error) {
     }
 
-    async #onGoBack(model, target, event) {
+    #onGoBack(model, target, event) {
         event.stopImmediatePropagation()
         navigateToPageTag('select-card-brand')
     }
