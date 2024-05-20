@@ -1,0 +1,25 @@
+<link rel="stylesheet" href="assets/css/root.css" />
+<link rel="stylesheet" href="assets/css/main.css" />
+<link rel="stylesheet" href="assets/css/header.css" />
+<link rel="stylesheet" href="assets/css/input.css" />
+
+<webc-container controller="SelectCardBrandController" class="homepage">
+    <div class="header">
+        <div class="header-left">
+            <div class="header-action-slot">
+                <button data-tag="go-back" class="button">
+                    <img src="assets/images/back.svg" alt="Go back">
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="spacer">
+        <div data-for="@brands" class="list">
+            <div data-tag="select-card-brand" class="list-item">
+                <img src="@image" alt="@value">
+                <p>{{ @value }}</p>
+                <div class="cover"></div>
+            </div>
+        </div>
+    </div>
+</webc-container>

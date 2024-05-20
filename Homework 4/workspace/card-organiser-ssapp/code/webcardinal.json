@@ -14,7 +14,22 @@
       "name": "Home",
       "tag": "home",
       "src": "./home.html",
-      "path": "./"
+      "path": "/"
+    },
+    {
+      "name": "Card",
+      "tag": "view-card",
+      "src": "./view-card.html"
+    },
+    {
+      "name": "Add card: select brand",
+      "tag": "select-card-brand",
+      "src": "./select-card-brand.html"
+    },
+    {
+      "name": "Add card: scan card",
+      "tag": "scan-card",
+      "src": "./scan-card.html"
     }
   ]
 }

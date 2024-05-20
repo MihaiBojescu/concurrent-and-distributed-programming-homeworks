@@ -1,0 +1,57 @@
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 1rem;
+    border: 1px solid var(--light-color);
+    border-radius: calc(var(--m-border-radius) / 2);
+    background: var(--lighter-color);
+    color: var(--dark-color);
+    width: 100%;
+    animation: 50ms;
+}
+
+.button-dark {
+    border: 1px solid var(--normal-color);
+    background: var(--dark-color);
+}
+
+.button:active:not(:disabled) {
+    background: var(--normal-color);
+}
+
+.button:disabled {
+    background: var(--white-color);
+    color: var(--light-color);
+}
+
+.button-row {
+    display: flex;
+    flex-direction: row;
+    gap: var(--xs-size);
+}
+
+.add-card-button {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    padding: var(--l-size);
+    right: var(--m-size);
+    bottom: var(--m-size);
+    border-radius: calc(var(--m-size) * 10);
+    box-shadow: var(--s-shadow) var(--normal-color);
+    gap: var(--m-size);
+}
+
+.add-card-button h3 {
+    user-select: none;
+}
+
+@media screen and (max-width:768px) {
+    .add-card-button h3 {
+        display: none; 
+    }
+}

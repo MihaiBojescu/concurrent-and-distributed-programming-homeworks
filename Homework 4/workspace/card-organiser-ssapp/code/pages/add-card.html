@@ -1,0 +1,28 @@
+<link rel="stylesheet" href="assets/css/root.css" />
+<link rel="stylesheet" href="assets/css/main.css" />
+<link rel="stylesheet" href="assets/css/input.css" />
+
+<webc-container controller="AddCardController" class="homepage">
+    <div data-if="@scannerVisible">
+        <div slot="true" class="page-cover" id="reader"></div>
+    </div>
+    <button data-tag="go-back" class="button">Go back</button>
+    <div class="big-card">
+        <div>
+            <label for="brand">Brand</label>
+            <select id="brand" data-for="@brands">
+                <option>{{ @value }}</option>
+            </select>
+        </div>
+        <div>
+            <label for="description">Description</label>
+            <input type="text" id="description" value="@description" />
+        </div>
+        <div>
+            <label for="serial">Serial</label>
+            <input type="text" id="serial" value="@serial" />
+            <input type="button" data-tag="scan-serial" value="Scan card" />
+        </div>
+        <button data-tag="add-card" class="button">Add card</button>
+    </div>
+</webc-container>

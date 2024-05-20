@@ -1,11 +1,13 @@
 import { SingletonFactory } from "../utils/SingletonFactory.js"
+import { brands } from '../data/brands.js'
 
 const opendsu = require('opendsu')
 
-const unknownImage = 'assets/images/unknown.png'
-const images = {
-    'auchan': 'assets/images/auchan.png'
-}
+const unknownImage = brands.find(entry => entry.value === 'unknown')
+const images = brands.reduce((acc, entry) => {
+    acc[entry.value] = entry.image
+    return acc
+}, {})
 
 class CardsRepository {
     #enclave = void 0
@@ -19,9 +21,10 @@ class CardsRepository {
             const result = await this.#enclave.getAllRecordsAsync('cards')
             return result.map((card) => ({
                 id: card.id,
-                name: card.name,
                 brand: card.brand,
-                image: this.#getImage(brand),
+                description: card.description,
+                type: card.type,
+                image: card.image,
                 serial: card.serial
             }))
         } catch { }
@@ -29,19 +32,28 @@ class CardsRepository {
         return []
     }
 
-    async addCard(name, brand, serial) {
-        let id = crypto.randomUUID()
+    async addCard(brand, description, type, serial) {
+    let id = crypto.randomUUID()
         try {
             while (await this.#enclave.getRecordAsync('cards', id)) {
                 id = crypto.randomUUID()
             }
         } catch { }
 
+        const card = {
+            id,
+            brand,
+            description,
+            type,
+            image: this.#getImage(brand),
+            serial
+        }
+
         const batchId = await this.#enclave.safeBeginBatchAsync()
-        await this.#enclave.insertRecordAsync('cards', id, { id, brand, name, serial })
+        await this.#enclave.insertRecordAsync('cards', id, card)
         await this.#enclave.commitBatchAsync(batchId)
 
-        return { id, name, brand, image: this.#getImage(brand), serial }
+        return card
     }
 
     async removeCard(id) {

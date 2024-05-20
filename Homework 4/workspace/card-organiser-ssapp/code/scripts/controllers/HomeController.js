@@ -1,5 +1,6 @@
 import { cardsRepositoryInstance } from "../repository/CardsRepository.js";
 
+const { navigateToPageTag } = WebCardinal.preload;
 const { Controller } = WebCardinal.controllers;
 
 export default class HomeController extends Controller {
@@ -38,7 +39,7 @@ export default class HomeController extends Controller {
 
     async onAddCard(model, target, event) {
         event.stopImmediatePropagation()
-        this.navigateToPageTag('add-card')
+        navigateToPageTag('select-card-brand')
     }
 
     async onViewCard(model, target, event) {
@@ -49,13 +50,13 @@ export default class HomeController extends Controller {
         }
 
         const cardId = target.parentElement.id
-        const card = this.model.cards.find(card => card.id === cardId)
+        const card = this.model.cards.find(entry => entry.id === cardId)
 
         if (!card) {
             return
         }
 
-        this.navigateToPageTag('card', { card })
+        navigateToPageTag('view-card', { card: { ...card } })
     }
 
     async reloadCards() {
