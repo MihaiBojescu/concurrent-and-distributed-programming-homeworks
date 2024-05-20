@@ -18,10 +18,10 @@ export default class AddCardController extends Controller {
             .then(() => document.dispatchEvent(new CustomEvent('add-card-controller-loaded', { detail: { error: null } })))
             .catch((error) => document.dispatchEvent(new CustomEvent('add-card-controller-loaded', { detail: { error } })))
 
-        document.addEventListener('add-card-controller-loaded', this.onInit.bind(this))
+        document.addEventListener('add-card-controller-loaded', this.#onInit.bind(this))
     }
 
-    async onInit(event) {
+    async #onInit(event) {
         if (event.error) {
             console.error(err)
             this.model.state = 'error'
@@ -30,10 +30,10 @@ export default class AddCardController extends Controller {
 
         this.#cardsRepository = await this.#cardsRepository
         this.model.state = 'loaded'
-        this.onTagClick('go-back', this.onGoBack.bind(this))
+        this.onTagClick('go-back', this.#onGoBack.bind(this))
     }
 
-    async onGoBack(model, target, event) {
+    async #onGoBack(model, target, event) {
         event.stopImmediatePropagation()
         this.navigateToPageTag('home')
     }

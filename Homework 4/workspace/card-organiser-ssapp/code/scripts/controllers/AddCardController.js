@@ -29,10 +29,10 @@ export default class AddCardController extends Controller {
             .then(() => document.dispatchEvent(new CustomEvent('add-card-controller-loaded', { detail: { error: null } })))
             .catch((error) => document.dispatchEvent(new CustomEvent('add-card-controller-loaded', { detail: { error } })))
 
-        document.addEventListener('add-card-controller-loaded', this.onInit.bind(this))
+        document.addEventListener('add-card-controller-loaded', this.#onInit.bind(this))
     }
 
-    async onInit(event) {
+    async #onInit(event) {
         if (event.error) {
             console.error(err)
             this.model.state = 'error'
@@ -41,12 +41,12 @@ export default class AddCardController extends Controller {
 
         this.#cardsRepository = await this.#cardsRepository
         this.model.state = 'loaded'
-        this.onTagClick('add-card', this.onAddCard.bind(this))
-        this.onTagClick('scan-serial', this.onScanSerial.bind(this))
-        this.onTagClick('go-back', this.onGoBack.bind(this))
+        this.onTagClick('add-card', this.#onAddCard.bind(this))
+        this.onTagClick('scan-serial', this.#onScanSerial.bind(this))
+        this.onTagClick('go-back', this.#onGoBack.bind(this))
     }
 
-    async onAddCard(model, target, event) {
+    async #onAddCard(model, target, event) {
         event.stopImmediatePropagation()
 
         if (this.model.state !== 'loaded') {
@@ -65,7 +65,7 @@ export default class AddCardController extends Controller {
         navigateToPageTag('home')
     }
 
-    async onScanSerial(model, target, event) {
+    async #onScanSerial(model, target, event) {
         event.stopImmediatePropagation()
 
         const devices = await Html5Qrcode.getCameras()
@@ -88,8 +88,8 @@ export default class AddCardController extends Controller {
                 this.#qrScanner.start(
                     cameraId,
                     { fps: 10 },
-                    this.onScanSuccess.bind(this),
-                    this.onScanFailed.bind(this)
+                    this.#onScanSuccess.bind(this),
+                    this.#onScanFailed.bind(this)
                 )
             }
         })
@@ -98,12 +98,12 @@ export default class AddCardController extends Controller {
         this.model.scannerVisible = true
     }
 
-    async onGoBack(model, target, event) {
+    async #onGoBack(model, target, event) {
         event.stopImmediatePropagation()
         navigateToPageTag('home')
     }
 
-    async onScanSuccess(decodedText, decodedResult) {
+    async #onScanSuccess(decodedText, decodedResult) {
         this.model.scannerVisible = false
         this.model.serial = decodedText
         
@@ -111,5 +111,7 @@ export default class AddCardController extends Controller {
         this.#qrScanner.stop()
     }
 
-    async onScanFailed(error) {}
+    async onDisconnectedCallback() {
+        console.log('disconnected')
+    }
 }

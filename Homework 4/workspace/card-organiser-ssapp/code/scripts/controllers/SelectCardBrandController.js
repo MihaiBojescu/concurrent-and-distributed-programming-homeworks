@@ -12,17 +12,17 @@ export default class SelectCardBrandController extends Controller {
             brands
         }
 
-        this.onTagClick('select-card-brand', this.onSelectCardBrand.bind(this))
-        this.onTagClick('go-back', this.onGoBack.bind(this))
+        this.onTagClick('select-card-brand', this.#onSelectCardBrand.bind(this))
+        this.onTagClick('go-back', this.#onGoBack.bind(this))
     }
 
-    async onSelectCardBrand(model, target, event) {
+    async #onSelectCardBrand(model, target, event) {
         this.model.brand = target.children[1].innerText
-        navigateToPageTag('scan-card', { brand: this.model.brand.toString() })
+        navigateToPageTag('scan-card', { card: { brand: this.model.brand.toString() } })
 
     }
 
-    async onGoBack(model, target, event) {
+    async #onGoBack(model, target, event) {
         event.stopImmediatePropagation()
         navigateToPageTag('home')
     }
