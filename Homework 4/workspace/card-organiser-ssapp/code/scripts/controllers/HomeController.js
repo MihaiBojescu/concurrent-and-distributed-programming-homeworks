@@ -20,6 +20,9 @@ export default class HomeController extends Controller {
             .catch((error) => document.dispatchEvent(new CustomEvent('home-controller-loaded', { detail: { error } })))
 
         document.addEventListener('home-controller-loaded', this.#onInit.bind(this))
+        
+        this.onTagClick('add-card', this.#onAddCard.bind(this))
+        this.onTagClick('view-card', this.#onViewCard.bind(this))
     }
 
     async #onInit(event) {
@@ -30,8 +33,6 @@ export default class HomeController extends Controller {
         }
 
         this.#cardsRepository = await this.#cardsRepository
-        this.onTagClick('add-card', this.#onAddCard.bind(this))
-        this.onTagClick('view-card', this.#onViewCard.bind(this))
         this.model.state = 'loaded'
 
         await this.#reloadCards()
