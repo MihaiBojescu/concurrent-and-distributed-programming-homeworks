@@ -61,7 +61,7 @@ class CardsRepository {
         return {
             id: card.id,
             brand: card.brand,
-            title: brandsByValue[card.brand],
+            title: brandsByValue[card.brand]?.name,
             description: card.description,
             type: card.type,
             image: brandsByValue[card.brand]?.image || brandsByValue['unknown'].image,
