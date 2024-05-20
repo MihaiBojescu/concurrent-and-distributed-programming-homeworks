@@ -79,7 +79,7 @@ export default class ScanCardController extends Controller {
         }
 
         await this.#videoCleanups()
-        await this.#onScanSuccess(decodedSymbols[0].decoded, decodedSymbols[0].typeName)
+        await this.#onScanSuccess(decodedSymbols[0].decoded, decodedSymbols[0].typeName.toLowerCase().replace('zbar_', ''))
     }
 
     async #videoCleanups() {
@@ -98,7 +98,6 @@ export default class ScanCardController extends Controller {
                 this.model.type,
                 this.model.serial
             )
-            console.log({ card })
         } finally {
             navigateToPageTag('home')
         }

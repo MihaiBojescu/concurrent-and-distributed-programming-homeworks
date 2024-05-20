@@ -6,6 +6,7 @@
 .page-centered {
     justify-content: center;
     align-items: center;
+    padding: calc(var(--xl-size) * 2);
 }
 
 .page-cover {
@@ -23,10 +24,10 @@
     right: 0;
 }
 
-.page-cover video { 
+.page-cover video {
     width: 100vw !important;
     height: 100vh !important;
- }
+}
 
 .card-list {
     display: flex;
@@ -41,13 +42,14 @@
     display: flex;
     overflow: hidden;
     width: 512px;
-    height: 256px;
+    aspect-ratio: 1.586;
     border-radius: var(--xl-size);
     box-shadow: var(--s-shadow) var(--normal-color);
 }
 
-.card-item img {
-    flex: 1;
+.card-item img,
+.card-item canvas {
+    width: 50%;
     aspect-ratio: 1 / 1;
 }
 
@@ -81,6 +83,17 @@
 
 .cover:hover {
     opacity: 0.2;
+}
+
+.big-card {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    width: max(30vw, 512px);
+    aspect-ratio: 1.586;
+    padding: calc(var(--xl-size) * 2);
+    border-radius: max(3.75vw, var(--xl-size));
+    box-shadow: var(--s-shadow) var(--normal-color);
 }
 
 

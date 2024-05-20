@@ -11,7 +11,7 @@ export default class AddCardController extends Controller {
 
         this.model = {
             state: 'loading',
-            card: { ...window.history.state.state.card }
+            ...window.history.state.state.card
         }
 
         this.#cardsRepository = cardsRepositoryInstance.get()
@@ -20,6 +20,7 @@ export default class AddCardController extends Controller {
             .catch((error) => document.dispatchEvent(new CustomEvent('view-card-controller-loaded', { detail: { error } })))
 
         document.addEventListener('view-card-controller-loaded', this.#onInit.bind(this))
+        this.#drawCard()
         this.onTagClick('delete-card', this.#onRemoveCard.bind(this))
         this.onTagClick('go-back', this.#onGoBack.bind(this))
     }
@@ -35,10 +36,20 @@ export default class AddCardController extends Controller {
         this.model.state = 'loaded'
     }
 
+    #drawCard() {
+        const element = document.querySelector(`.card-item canvas`)
+
+        bwipjs.toCanvas(element, {
+            bcid: this.model.type,
+            text: this.model.serial,
+            includetext: true
+        })
+    }
+
     async #onRemoveCard(model, target, event) {
         event.stopImmediatePropagation()
 
-        await this.#cardsRepository.removeCard(this.model.card.id)
+        await this.#cardsRepository.removeCard(this.model.id)
         navigateToPageTag('home')
     }
 
