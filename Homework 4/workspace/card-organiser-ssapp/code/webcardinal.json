@@ -17,7 +17,7 @@
       "path": "/"
     },
     {
-      "name": "Card",
+      "name": "View card",
       "tag": "view-card",
       "src": "./view-card.html"
     },
